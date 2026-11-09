@@ -1,0 +1,13 @@
+services:
+  billiard-championship:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: billiard_championship_app
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - ./backend/billiard_championship.db:/app/backend/billiard_championship.db
+    environment:
+      - PORT=8000

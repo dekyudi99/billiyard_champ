@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billiard Championship - World Esports Hub</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css?v=2.2">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-cyan-500 selection:text-slate-950">
+    <div id="app" class="flex flex-col min-h-screen">
+        
+        <!-- Header / Navbar -->
+        <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 font-black text-xl tracking-wider text-slate-950">
+                        🎱
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">
+                            BILLIARD CHAMPIONSHIP
+                        </h1>
+                        <p class="text-xs text-slate-400 font-medium">World Esports League & Ranking System</p>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs (Scalable for Tablet & Desktop) -->
+                <nav class="hidden md:flex items-center space-x-1 lg:space-x-1.5">
+                    <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id"
+                            :class="[
+                                currentTab === tab.id 
+                                    ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/50 shadow-sm' 
+                                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border-transparent',
+                                'px-2 lg:px-3 py-1.5 lg:py-2 text-xs lg:text-sm font-semibold rounded-lg border transition-all flex items-center space-x-1 lg:space-x-1.5 whitespace-nowrap'
+                            ]">
+                        <span class="text-sm lg:text-base">{{ tab.icon }}</span>
+                        <span class="hidden xl:inline">{{ tab.name }}</span>
+                        <span class="xl:hidden">{{ tab.shortName || tab.name }}</span>
+                    </button>
+                </nav>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Navigation Drawer -->
+            <div v-if="mobileMenuOpen" class="md:hidden px-4 pt-2 pb-4 space-y-1 bg-slate-900/95 border-b border-slate-800 backdrop-blur-md animate-fadeIn">
+                <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id; mobileMenuOpen = false"
+                        :class="[
+                            currentTab === tab.id ? 'bg-cyan-500/20 text-cyan-400 border-l-4 border-cyan-400 font-bold' : 'text-slate-300 hover:bg-slate-800/60',
+                            'w-full text-left px-3 py-2.5 rounded-r-md text-sm font-medium flex items-center space-x-3 transition'
+                        ]">
+                    <span class="text-base">{{ tab.icon }}</span>
+                    <span>{{ tab.name }}</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+            <!-- 1. TAB: ROAD TO WORLD CHAMPION -->
+            <section v-if="currentTab === 'road-to-world'" class="space-y-8 animate-fadeIn">
+                <!-- Banner & Info -->
+                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 p-6 md:p-8 shadow-2xl">
+                    <div class="relative z-10 max-w-3xl">
+                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 mb-3">
+                            🏆 Jalur Kualifikasi Otomatis Musim 4
+                        </span>
+                        <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">
+                            ROAD TO WORLD CHAMPION
+                        </h2>
+                        <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+                            Sistem secara otomatis mengalokasikan slot tiket turnamen dunia <strong>M4 Championship</strong> (16 Tim) dan <strong>MSL Championship Season 4</strong> (8 Tim) berdasarkan hasil klasemen liga regional MPL.
+                        </p>
+                    </div>
+
+                    <!-- Simulator & Action Controls -->
+                    <div class="mt-6 pt-6 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs uppercase tracking-wider font-bold text-slate-400">Simulator SEA S4:</span>
+                            <button @click="simulateSeaS4" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition-all flex items-center space-x-2">
+                                <span>⚡ Simulasikan MPL SEA S4</span>
+                            </button>
+                            <button @click="resetSeaS4" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition">
+                                Reset
+                            </button>
+                        </div>
+                        
+                        <div class="text-xs text-slate-400 bg-slate-950/80 px-3 py-2 rounded-xl border border-slate-800">
+                            🛡️ <strong>Aturan Slot Juara M3:</strong> Juara 1 (T1) $\rightarrow$ PEL #3 (DRX). Juara 2 (IHC) $\rightarrow$ PEL #5 (DK) karena Juara 1 & 2 sama-sama PEL!
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bagian 1: ROAD TO M4 CHAMPIONSHIP (16 Slot) -->
+                <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">M4</div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white tracking-wide">ROAD TO M4 CHAMPIONSHIP</h3>
+                                <p class="text-xs text-slate-400">Total 16 Tim: 14 Kuota Regional MPL + 1 Juara 1 M3 Reward (PEL #3: DRX) + 1 Juara MSL S4</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-cyan-400 border border-slate-700">
+                            {{ confirmedM4Count }} / 16 Slot Terisi
+                        </span>
+                    </div>
+
+                    <!-- Grid 16 Kotak M4 (Mirip Bagan Excel) -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div v-for="slot in roadData.m_championship?.slots" :key="slot.id"
+                             :class="[
+                                slot.status === 'CONFIRMED' 
+                                    ? 'bg-slate-800/60 border-slate-700 hover:border-cyan-500/50' 
+                                    : 'bg-slate-900/30 border-dashed border-amber-500/30',
+                                'relative rounded-xl p-4 border flex flex-col justify-between transition-all group'
+                             ]">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-950/60 border border-slate-800"
+                                      :class="slot.status === 'CONFIRMED' ? 'text-cyan-400' : 'text-amber-400'">
+                                    {{ slot.slot_code }}
+                                </span>
+                                <span class="text-xs text-slate-500 font-mono">#{{ slot.slot_number }}</span>
+                            </div>
+
+                            <!-- Team Display -->
+                            <div class="flex items-center space-x-3 my-3">
+                                <div class="w-14 h-14 rounded-xl bg-slate-950/80 border border-slate-800 p-1 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
+                                    <img v-if="slot.team_logo" :src="'/static/logos/' + slot.team_logo" :alt="slot.team_name" class="max-w-full max-h-full object-contain">
+                                    <span v-else class="text-xl text-slate-600 font-bold">?</span>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <h4 class="font-bold text-base text-white truncate" :class="{'text-slate-500 italic': !slot.team_id}">
+                                        {{ slot.team_name || 'Menunggu Hasil...' }}
+                                    </h4>
+                                    <span v-if="slot.team_id" class="text-xs font-semibold text-slate-400">
+                                        Region: <span class="text-slate-200">{{ slot.region_id }}</span>
+                                    </span>
+                                    <span v-else class="text-[11px] text-amber-400/90 font-medium block">
+                                        {{ slot.description }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="text-[11px] text-slate-400 pt-2 border-t border-slate-800/60 truncate">
+                                {{ slot.description }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bagian 2: ROAD TO MSL CHAMPIONSHIP S4 (8 Slot) -->
+                <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
+                    <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">MSL</div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white tracking-wide">ROAD TO MSL CHAMPIONSHIP S4</h3>
+                                <p class="text-xs text-slate-400">Total 8 Tim: Peringkat 3 MPL Regional + Peringkat 4 Juara 1 M3 (IHC) + Slot Ekstra Juara 2 M3 (PEL #5: DK)</p>
+                            </div>
+                        </div>
+                        <span class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-purple-400 border border-slate-700">
+                            {{ confirmedMslCount }} / 8 Slot Terisi
+                        </span>
+                    </div>
+
+                    <!-- Grid 8 Kotak MSL -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                        <div v-for="slot in roadData.msl_championship?.slots" :key="slot.id"
+                             :class="[
+                                slot.status === 'CONFIRMED' 
+                                    ? 'bg-slate-800/60 border-slate-700 hover:border-purple-500/50' 
+                                    : 'bg-slate-900/30 border-dashed border-purple-500/30',
+                                'relative rounded-xl p-4 border flex flex-col justify-between transition-all group'
+                             ]">
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-slate-950/60 border border-slate-800"
+                                      :class="slot.status === 'CONFIRMED' ? 'text-purple-400' : 'text-amber-400'">
+                                    {{ slot.slot_code }}
+                                </span>
+                                <span class="text-xs text-slate-500 font-mono">#{{ slot.slot_number }}</span>
+                            </div>
+
+                            <!-- Team Display -->
+                            <div class="flex items-center space-x-3 my-3">
+                                <div class="w-14 h-14 rounded-xl bg-slate-950/80 border border-slate-800 p-1 flex items-center justify-center shrink-0 shadow-inner group-hover:scale-105 transition-transform">
+                                    <img v-if="slot.team_logo" :src="'/static/logos/' + slot.team_logo" :alt="slot.team_name" class="max-w-full max-h-full object-contain">
+                                    <span v-else class="text-xl text-slate-600 font-bold">?</span>
+                                </div>
+                                <div class="overflow-hidden">
+                                    <h4 class="font-bold text-base text-white truncate" :class="{'text-slate-500 italic': !slot.team_id}">
+                                        {{ slot.team_name || 'Menunggu Hasil...' }}
+                                    </h4>
+                                    <span v-if="slot.team_id" class="text-xs font-semibold text-slate-400">
+                                        Region: <span class="text-slate-200">{{ slot.region_id }}</span>
+                                    </span>
+                                    <span v-else class="text-[11px] text-amber-400/90 font-medium block">
+                                        {{ slot.description }}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div class="text-[11px] text-slate-400 pt-2 border-t border-slate-800/60 truncate">
+                                {{ slot.description }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. TAB: BASE TEAM (LEADERBOARD TIM ALL-TIME & LEMARI TROFI) -->
+            <section v-if="currentTab === 'base-team'" class="space-y-6 animate-fadeIn">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-black tracking-tight text-white">BASE TEAM - ALL-TIME RANKING</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">Peringkat tim dunia berdasarkan perolehan trofi resmi turnamen. Hanya tim yang meraih trofi yang mendapatkan poin!</p>
+                    </div>
+
+                    <!-- Filter by Region -->
+                    <div class="flex items-center space-x-2 overflow-x-auto pb-2 md:pb-0">
+                        <button @click="selectedRegionFilter = ''" 
+                                :class="selectedRegionFilter === '' ? 'bg-cyan-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'"
+                                class="px-3 py-1.5 rounded-lg text-xs transition">
+                            Semua
+                        </button>
+                        <button v-for="r in regions" :key="r.id" @click="selectedRegionFilter = r.id"
+                                :class="selectedRegionFilter === r.id ? 'bg-cyan-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'"
+                                class="px-3 py-1.5 rounded-lg text-xs transition">
+                            {{ r.id }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Trophy Legend Card (Scalable Grid) -->
+                <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-3 sm:p-4 space-y-2.5">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-slate-400">
+                        <span class="font-bold uppercase tracking-wider text-slate-300">Skema Bobot Poin Trofi Resmi:</span>
+                        <span class="text-[11px] text-cyan-400 font-medium">*Hanya tim peraih trofi yang mendapatkan poin di Base Team & Base Region</span>
+                    </div>
+                    <div class="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2 text-xs">
+                        <div class="flex items-center space-x-1.5 bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+                            <img src="/static/trofi/trofi_m_championship.png" class="w-6 h-6 object-contain shrink-0" alt="Juara M">
+                            <div class="truncate">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase truncate">Juara M</div>
+                                <div class="text-amber-400 font-bold font-mono">1.500 Pts</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5 bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+                            <img src="/static/trofi/trofi_msl.png" class="w-6 h-6 object-contain shrink-0" alt="Juara MSL">
+                            <div class="truncate">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase truncate">Juara MSL</div>
+                                <div class="text-purple-400 font-bold font-mono">1.250 Pts</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5 bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+                            <img src="/static/trofi/trofi_mpl.png" class="w-6 h-6 object-contain shrink-0" alt="Juara MPL">
+                            <div class="truncate">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase truncate">Juara MPL</div>
+                                <div class="text-cyan-400 font-bold font-mono">1.000 Pts</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5 bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+                            <img src="/static/trofi/runner_up_m_championship.png" class="w-6 h-6 object-contain shrink-0" alt="RU M">
+                            <div class="truncate">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase truncate">RU M</div>
+                                <div class="text-slate-200 font-bold font-mono">1.000 Pts</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5 bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+                            <img src="/static/trofi/runner_up_msl.png" class="w-6 h-6 object-contain shrink-0" alt="RU MSL">
+                            <div class="truncate">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase truncate">RU MSL</div>
+                                <div class="text-purple-300 font-bold font-mono">750 Pts</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5 bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+                            <img src="/static/trofi/3rd_place_m_championship.png" class="w-6 h-6 object-contain shrink-0" alt="3rd M">
+                            <div class="truncate">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase truncate">3rd M</div>
+                                <div class="text-amber-500 font-bold font-mono">750 Pts</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5 bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+                            <img src="/static/trofi/3rd_place_m_championship.png" class="w-6 h-6 object-contain shrink-0" alt="3rd MSL">
+                            <div class="truncate">
+                                <div class="text-[10px] text-purple-300 font-bold uppercase truncate">3rd MSL</div>
+                                <div class="text-purple-300 font-bold font-mono">500 Pts</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5 bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+                            <img src="/static/trofi/runner_up_mpl.png" class="w-6 h-6 object-contain shrink-0" alt="RU MPL">
+                            <div class="truncate">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase truncate">RU MPL</div>
+                                <div class="text-blue-300 font-bold font-mono">500 Pts</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-1.5 bg-slate-950/70 p-1.5 rounded-lg border border-slate-800">
+                            <img src="/static/trofi/4rd_place_championship.png" class="w-6 h-6 object-contain shrink-0" alt="4th M">
+                            <div class="truncate">
+                                <div class="text-[10px] text-slate-400 font-bold uppercase truncate">4th M</div>
+                                <div class="text-slate-400 font-bold font-mono">500 Pts</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Leaderboard -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden shadow-xl backdrop-blur-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-300">
+                            <thead class="bg-slate-950 text-slate-400 uppercase text-[11px] tracking-wider border-b border-slate-800">
+                                <tr>
+                                    <th class="py-3 px-4 text-center w-16">Rank</th>
+                                    <th class="py-3 px-4">Tim</th>
+                                    <th class="py-3 px-4 text-center">Region</th>
+                                    <th class="py-3 px-4 text-right font-bold text-slate-200">Total Poin</th>
+                                    <th class="py-3 px-4">Lemari Koleksi Trofi</th>
+                                    <th class="py-3 px-4 text-center">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800/60 font-medium">
+                                <tr v-for="team in filteredTeams" :key="team.id" 
+                                    class="hover:bg-slate-800/40 transition-colors"
+                                    :class="{'bg-amber-500/5': team.rank === 1, 'bg-slate-800/20': team.rank === 2 || team.rank === 3}">
+                                    <td class="py-3 px-4 text-center font-bold">
+                                        <span v-if="team.rank === 1" class="text-amber-400 font-extrabold text-lg">🥇 1</span>
+                                        <span v-else-if="team.rank === 2" class="text-slate-300 font-extrabold text-base">🥈 2</span>
+                                        <span v-else-if="team.rank === 3" class="text-amber-600 font-extrabold text-base">🥉 3</span>
+                                        <span v-else class="text-slate-500">#{{ team.rank }}</span>
+                                    </td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-9 h-9 rounded-lg bg-slate-950 border border-slate-800 p-1 flex items-center justify-center shrink-0">
+                                                <img v-if="team.logo" :src="'/static/logos/' + team.logo" :alt="team.name" class="max-w-full max-h-full object-contain">
+                                                <span v-else class="text-xs text-slate-600 font-bold">{{ team.id }}</span>
+                                            </div>
+                                            <div>
+                                                <div class="font-bold text-white flex items-center space-x-1.5">
+                                                    <span>{{ team.name }}</span>
+                                                    <span class="text-xs text-slate-400 font-mono">({{ team.id }})</span>
+                                                </div>
+                                                <span class="text-[11px] text-slate-500">{{ team.region_name }}</span>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-center">
+                                        <span class="px-2 py-0.5 rounded text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                                             {{ team.region_id }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3 px-4 text-right">
+                                        <span class="text-base font-black text-cyan-400 font-mono">{{ team.points.toLocaleString() }}</span>
+                                    </td>
+                                    
+                                    <!-- Trophy Cabinet Visual Icons -->
+                                    <td class="py-3 px-4">
+                                        <div class="flex flex-wrap items-center gap-1.5">
+                                            <div v-if="team.trofi_m_1st > 0" class="flex items-center bg-slate-950/80 px-2 py-1 rounded-lg border border-amber-500/40" title="Juara 1 M World Championship (1500 pts)">
+                                                <img src="/static/trofi/trofi_m_championship.png" class="w-5 h-5 object-contain mr-1">
+                                                <span class="text-xs font-bold text-amber-400">×{{ team.trofi_m_1st }}</span>
+                                            </div>
+                                            <div v-if="team.trofi_msl_1st > 0" class="flex items-center bg-slate-950/80 px-2 py-1 rounded-lg border border-purple-500/40" title="Juara 1 MSL Championship (1250 pts)">
+                                                <img src="/static/trofi/trofi_msl.png" class="w-5 h-5 object-contain mr-1">
+                                                <span class="text-xs font-bold text-purple-400">×{{ team.trofi_msl_1st }}</span>
+                                            </div>
+                                            <div v-if="team.trofi_mpl_1st > 0" class="flex items-center bg-slate-950/80 px-2 py-1 rounded-lg border border-cyan-500/40" title="Juara 1 MPL Regional (1000 pts)">
+                                                <img src="/static/trofi/trofi_mpl.png" class="w-5 h-5 object-contain mr-1">
+                                                <span class="text-xs font-bold text-cyan-400">×{{ team.trofi_mpl_1st }}</span>
+                                            </div>
+                                            <div v-if="team.trofi_m_2nd > 0" class="flex items-center bg-slate-950/80 px-2 py-1 rounded-lg border border-slate-700" title="Runner-up M World Championship (1000 pts)">
+                                                <img src="/static/trofi/runner_up_m_championship.png" class="w-5 h-5 object-contain mr-1">
+                                                <span class="text-xs font-bold text-slate-300">×{{ team.trofi_m_2nd }}</span>
+                                            </div>
+                                            <div v-if="team.trofi_msl_2nd > 0" class="flex items-center bg-slate-950/80 px-2 py-1 rounded-lg border border-purple-700" title="Runner-up MSL (750 pts)">
+                                                <img src="/static/trofi/runner_up_msl.png" class="w-5 h-5 object-contain mr-1">
+                                                <span class="text-xs font-bold text-purple-300">×{{ team.trofi_msl_2nd }}</span>
+                                            </div>
+                                            <div v-if="team.trofi_m_3rd > 0" class="flex items-center bg-slate-950/80 px-2 py-1 rounded-lg border border-amber-800" title="Peringkat 3 M-Series (750 pts)">
+                                                <img src="/static/trofi/3rd_place_m_championship.png" class="w-5 h-5 object-contain mr-1">
+                                                <span class="text-xs font-bold text-amber-500">×{{ team.trofi_m_3rd }}</span>
+                                            </div>
+                                            <div v-if="team.trofi_msl_3rd > 0" class="flex items-center bg-slate-950/80 px-2 py-1 rounded-lg border border-purple-800" title="Peringkat 3 MSL Championship (500 pts)">
+                                                <img src="/static/trofi/3rd_place_m_championship.png" class="w-5 h-5 object-contain mr-1">
+                                                <span class="text-xs font-bold text-purple-300">×{{ team.trofi_msl_3rd }}</span>
+                                            </div>
+                                            <div v-if="team.trofi_mpl_2nd > 0" class="flex items-center bg-slate-950/80 px-2 py-1 rounded-lg border border-blue-900" title="Runner-up MPL (500 pts)">
+                                                <img src="/static/trofi/runner_up_mpl.png" class="w-5 h-5 object-contain mr-1">
+                                                <span class="text-xs font-bold text-blue-300">×{{ team.trofi_mpl_2nd }}</span>
+                                            </div>
+                                            <div v-if="team.trofi_m_4th > 0" class="flex items-center bg-slate-950/80 px-2 py-1 rounded-lg border border-slate-800" title="Peringkat 4 M-Series (500 pts)">
+                                                <img src="/static/trofi/4rd_place_championship.png" class="w-5 h-5 object-contain mr-1">
+                                                <span class="text-xs font-bold text-slate-400">×{{ team.trofi_m_4th }}</span>
+                                            </div>
+                                            <span v-if="team.points === 0" class="text-xs text-slate-600 italic">Belum ada trofi</span>
+                                        </div>
+                                    </td>
+
+                                    <td class="py-3 px-4 text-center">
+                                        <button @click="openTeamTrophyCabinet(team)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs text-cyan-400 font-semibold transition border border-slate-700">
+                                            Detail Trofi
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. TAB: BASE REGION -->
+            <section v-if="currentTab === 'base-region'" class="space-y-6 animate-fadeIn">
+                <div>
+                    <h2 class="text-2xl font-black tracking-tight text-white">BASE REGION - INTERNATIONAL COEFFICIENT</h2>
+                    <p class="text-xs sm:text-sm text-slate-400">Peringkat wilayah dunia berdasarkan trofi internasional yang diraih tim-timnya di M-Championship dan MSL.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div v-for="reg in regions" :key="reg.id"
+                         class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 relative overflow-hidden backdrop-blur-sm flex flex-col justify-between">
+                        <div class="flex items-center justify-between mb-4">
+                            <span class="px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider bg-slate-950 border border-slate-800 text-cyan-400">
+                                {{ reg.id }}
+                            </span>
+                            <span class="text-sm font-extrabold" :class="reg.rank === 1 ? 'text-amber-400' : 'text-slate-400'">
+                                Peringkat #{{ reg.rank }}
+                            </span>
+                        </div>
+
+                        <div>
+                            <h3 class="text-xl font-bold text-white mb-1">{{ reg.name }}</h3>
+                            <div class="text-3xl font-black text-cyan-400 font-mono mb-4">
+                                {{ reg.total_points.toLocaleString() }} <span class="text-xs text-slate-500 font-normal">Poin Internasional</span>
+                            </div>
+
+                            <div class="space-y-2 text-xs border-t border-slate-800 pt-3 text-slate-400">
+                                <div class="flex justify-between">
+                                    <span>M Championship Points:</span>
+                                    <span class="font-bold text-slate-200">{{ reg.m_points.toLocaleString() }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>MSL Championship Points:</span>
+                                    <span class="font-bold text-slate-200">{{ reg.msl_points.toLocaleString() }}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span>Poin Kompetitif:</span>
+                                    <span class="font-bold text-slate-200">{{ reg.comp_points.toLocaleString() }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar Visual -->
+                        <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden mt-4">
+                            <div class="bg-gradient-to-r from-cyan-500 to-blue-500 h-full rounded-full" 
+                                 :style="{ width: ((reg.total_points / (regions[0]?.total_points || 1)) * 100) + '%' }"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. TAB: SEASON WORKFLOW & BUAT TURNAMEN (NEW FEATURE!) -->
+            <section v-if="currentTab === 'workflow'" class="space-y-6 animate-fadeIn">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-black tracking-tight text-white">MANAJEMEN ALUR SEASON & TURNAMEN</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">Sistem mengunci urutan turnamen: <strong>Semua MPL (Fase 1) $\rightarrow$ MSL (Fase 2) $\rightarrow$ M-Series (Fase 3)</strong>. Tidak ada turnamen ganda dalam satu season.</p>
+                    </div>
+
+                    <!-- Season Selector -->
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-slate-400 font-bold uppercase">Pilih Season:</span>
+                        <select v-model="selectedSeasonWorkflow" @change="fetchWorkflowStatus" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+                            <option v-for="s in availableSeasons" :key="s" :value="s">Season {{ s }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Workflow Sequence Card -->
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm space-y-6">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Status Season {{ workflowData.season }}</span>
+                            <h3 class="text-xl font-bold text-white">Fase Berjalan: {{ workflowData.phase_name }}</h3>
+                        </div>
+                        <span class="px-3 py-1 rounded-full text-xs font-bold"
+                              :class="workflowData.current_phase === 4 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40' : 'bg-amber-500/20 text-amber-400 border border-amber-500/40'">
+                            Fase {{ workflowData.current_phase }} / 3
+                        </span>
+                    </div>
+
+                    <!-- Step-by-Step Sequence Progress -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        
+                        <!-- Step 1: MPL Regionals -->
+                        <div class="p-4 rounded-xl border flex flex-col justify-between"
+                             :class="workflowData.all_mpl_done ? 'bg-emerald-950/20 border-emerald-500/40' : 'bg-slate-950/80 border-slate-800'">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded" :class="workflowData.all_mpl_done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-300'">
+                                        FASE 1: MPL REGIONAL
+                                    </span>
+                                    <span class="text-xs font-bold" :class="workflowData.all_mpl_done ? 'text-emerald-400' : 'text-amber-400'">
+                                        {{ workflowData.mpl_completed_count }} / 7 Selesai
+                                    </span>
+                                </div>
+                                <h4 class="font-bold text-white text-sm mb-2">7 Liga Regional Domestik</h4>
+                                <p class="text-xs text-slate-400 mb-3">Seluruh 7 MPL (AM, ID, MEA, MY, PEL, PH, SEA) harus tuntas sebelum MSL dapat dibuat.</p>
+                            </div>
+                            <div class="pt-3 border-t border-slate-800 text-xs">
+                                <span v-if="workflowData.all_mpl_done" class="text-emerald-400 font-bold">✓ Seluruh MPL Selesai</span>
+                                <span v-else class="text-amber-400 font-semibold">⏳ Menunggu MPL SEA S4 selesai</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: MSL Championship -->
+                        <div class="p-4 rounded-xl border flex flex-col justify-between"
+                             :class="workflowData.msl_done ? 'bg-emerald-950/20 border-emerald-500/40' : (workflowData.can_start_msl ? 'bg-purple-950/20 border-purple-500/40' : 'bg-slate-950/80 border-slate-800 opacity-60')">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded" :class="workflowData.msl_done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-300'">
+                                        FASE 2: MSL CHAMPIONSHIP
+                                    </span>
+                                    <span class="text-xs font-bold" :class="workflowData.msl_done ? 'text-emerald-400' : (workflowData.can_start_msl ? 'text-purple-400' : 'text-slate-500')">
+                                        {{ workflowData.msl_done ? 'Selesai' : (workflowData.can_start_msl ? 'Siap Dimulai' : 'Terkunci') }}
+                                    </span>
+                                </div>
+                                <h4 class="font-bold text-white text-sm mb-2">Piala Internasional 8 Tim</h4>
+                                <p class="text-xs text-slate-400 mb-3">Peserta diambil otomatis dari peringkat 3/4 MPL. Juara MSL berhak lolos ke M-Championship (MSL #1).</p>
+                            </div>
+                            <div class="pt-3 border-t border-slate-800 text-xs flex items-center justify-between">
+                                <span v-if="workflowData.msl_done" class="text-emerald-400 font-bold">✓ Juara: {{ workflowData.msl_tournament?.winner_id }}</span>
+                                <button v-else-if="workflowData.can_start_msl" @click="createMslTournament" class="px-3 py-1.5 rounded-lg bg-purple-500 hover:bg-purple-400 text-slate-950 font-bold text-xs transition">
+                                    Buat / Mulai MSL S{{ workflowData.season }}
+                                </button>
+                                <span v-else class="text-slate-500 italic">Terkunci (Selesaikan Fase 1)</span>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: M World Championship -->
+                        <div class="p-4 rounded-xl border flex flex-col justify-between"
+                             :class="workflowData.m_done ? 'bg-emerald-950/20 border-emerald-500/40' : (workflowData.can_start_m ? 'bg-amber-950/20 border-amber-500/40' : 'bg-slate-950/80 border-slate-800 opacity-60')">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold px-2 py-0.5 rounded" :class="workflowData.m_done ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-800 text-slate-300'">
+                                        FASE 3: M CHAMPIONSHIP
+                                    </span>
+                                    <span class="text-xs font-bold" :class="workflowData.m_done ? 'text-emerald-400' : (workflowData.can_start_m ? 'text-amber-400' : 'text-slate-500')">
+                                        {{ workflowData.m_done ? 'Selesai' : (workflowData.can_start_m ? 'Siap Dimulai' : 'Terkunci') }}
+                                    </span>
+                                </div>
+                                <h4 class="font-bold text-white text-sm mb-2">Puncak Dunia 16 Tim</h4>
+                                <p class="text-xs text-slate-400 mb-3">Peserta: 14 Kuota MPL + 1 Juara Bertahan Region + 1 Juara MSL (MSL #1).</p>
+                            </div>
+                            <div class="pt-3 border-t border-slate-800 text-xs flex items-center justify-between">
+                                <span v-if="workflowData.m_done" class="text-emerald-400 font-bold">✓ Juara Dunia: {{ workflowData.m_tournament?.winner_id }}</span>
+                                <button v-else-if="workflowData.can_start_m" @click="createMTournament" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs transition">
+                                    Buat / Mulai M{{ workflowData.season }}
+                                </button>
+                                <span v-else class="text-slate-500 italic">Terkunci (Selesaikan Fase 1 & 2)</span>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Next Season Button -->
+                    <div class="pt-4 border-t border-slate-800 flex items-center justify-between">
+                        <span class="text-xs text-slate-400">
+                            Season baru hanya dapat dimulai jika seluruh turnamen MPL, MSL, dan M-Championship telah tuntas.
+                        </span>
+                        <button :disabled="!workflowData.can_start_next_season" 
+                                @click="startNewSeason"
+                                :class="workflowData.can_start_next_season ? 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-bold cursor-pointer' : 'bg-slate-800 text-slate-600 cursor-not-allowed'"
+                                class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition">
+                            + Mulai Season Baru (Season {{ workflowData.season + 1 }})
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 5. TAB: RIWAYAT TROFI & REKOR POIN (NEW FEATURE!) -->
+            <section v-if="currentTab === 'trophies-history'" class="space-y-6 animate-fadeIn">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-black tracking-tight text-white">RIWAYAT TROFI RESMI DUNIA</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">Arsip seluruh {{ trophiesHistory.length }} trofi yang pernah diraih oleh tim sepanjang sejarah turnamen.</p>
+                    </div>
+
+                    <div class="flex items-center space-x-2">
+                        <span class="text-xs text-slate-400 font-bold uppercase">Filter Season:</span>
+                        <select v-model="selectedTrophySeasonFilter" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white">
+                            <option value="">Semua Season</option>
+                            <option v-for="s in availableSeasons" :key="s" :value="s">Season {{ s }}</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Trophies Grid Log -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div v-for="th in filteredTrophiesHistory" :key="th.id"
+                         class="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex items-center space-x-3 hover:border-cyan-500/40 transition">
+                        <div class="w-12 h-12 bg-slate-950 rounded-xl border border-slate-800 p-1.5 flex items-center justify-center shrink-0 shadow-inner">
+                            <img :src="'/static/trofi/' + th.trophy_image" :alt="th.trophy_title" class="max-w-full max-h-full object-contain">
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="flex items-center space-x-2 mb-0.5">
+                                <span class="font-bold text-sm text-white truncate">{{ th.team_id }}</span>
+                                <span class="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">+{{ th.points }} Poin</span>
+                            </div>
+                            <h4 class="text-xs font-semibold text-slate-300 truncate">{{ th.tournament_name }}</h4>
+                            <span class="text-[11px] text-slate-500">Season {{ th.season }} • Placement #{{ th.placement }}</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 6. TAB: TOURNAMENTS -->
+            <section v-if="currentTab === 'tournaments'" class="space-y-6 animate-fadeIn">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-black tracking-tight text-white">DOKUMENTASI & BAGAN TURNAMEN</h2>
+                        <p class="text-xs sm:text-sm text-slate-400">Jelajahi dan perbarui seluruh pertandingan di MPL Regional, MSL, dan M-Series.</p>
+                    </div>
+
+                    <!-- Category Filters -->
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button v-for="cat in ['ALL', 'MPL', 'MSL', 'M_SERIES']" :key="cat"
+                                @click="tournamentTypeFilter = cat"
+                                :class="tournamentTypeFilter === cat ? 'bg-cyan-500 text-slate-950 font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'"
+                                class="px-3 py-1.5 rounded-lg text-xs transition">
+                            {{ cat }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tournament List Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div v-for="t in filteredTournaments" :key="t.id"
+                         @click="selectTournament(t.id)"
+                         class="bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 rounded-xl p-5 cursor-pointer transition-all hover:bg-slate-850 flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-2">
+                                <span class="text-[11px] font-extrabold uppercase px-2 py-0.5 rounded"
+                                      :class="{
+                                          'bg-blue-500/20 text-blue-400 border border-blue-500/30': t.type === 'MPL',
+                                          'bg-purple-500/20 text-purple-400 border border-purple-500/30': t.type === 'MSL',
+                                          'bg-amber-500/20 text-amber-400 border border-amber-500/30': t.type === 'M_SERIES'
+                                      }">
+                                    {{ t.type }} • Season {{ t.season }}
+                                </span>
+                                <span class="text-xs px-2 py-0.5 rounded font-semibold"
+                                      :class="t.status === 'COMPLETED' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400 animate-pulse'">
+                                    {{ t.status === 'COMPLETED' ? 'Selesai' : 'Sedang Berjalan' }}
+                                </span>
+                            </div>
+                            <h3 class="font-bold text-lg text-white mb-1">{{ t.name }}</h3>
+                            <p class="text-xs text-slate-400 mb-4">Region: <span class="text-slate-200">{{ t.region_id || 'Global' }}</span></p>
+                        </div>
+
+                        <!-- Winner / Podium preview -->
+                        <div class="pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                            <span class="text-slate-400">Juara:</span>
+                            <div class="flex items-center space-x-1.5 font-bold text-amber-400">
+                                <img v-if="t.winner_logo" :src="'/static/logos/' + t.winner_logo" class="w-5 h-5 object-contain">
+                                <span>{{ t.winner_name || '(Belum Ditentukan)' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 7. TOURNAMENT DETAILS MODAL (BRACKET & LOGO ENGINE) -->
+            <div v-if="selectedTournamentData" class="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-6xl max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-6 shadow-2xl">
+                    
+                    <!-- Modal Header -->
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center font-black text-lg text-cyan-400 shadow-inner">
+                                🏆
+                            </div>
+                            <div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">{{ selectedTournamentData.type }} • Season {{ selectedTournamentData.season }}</span>
+                                    <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase"
+                                          :class="selectedTournamentData.status === 'COMPLETED' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30 animate-pulse'">
+                                        {{ selectedTournamentData.status === 'COMPLETED' ? 'Selesai' : 'Sedang Berjalan' }}
+                                    </span>
+                                </div>
+                                <h3 class="text-xl sm:text-2xl font-black text-white tracking-tight">{{ selectedTournamentData.name }}</h3>
+                            </div>
+                        </div>
+                        <button @click="selectedTournamentData = null" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition">✕</button>
+                    </div>
+
+                    <!-- Podium Summary (Enhanced with Logos) -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+                        <!-- Juara 1 -->
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-amber-500/40 flex flex-col items-center text-center relative overflow-hidden group">
+                            <span class="text-[11px] font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center space-x-1">
+                                <span>🥇</span> <span>Juara 1</span>
+                            </span>
+                            <div class="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 p-1 flex items-center justify-center mb-2 shadow-inner group-hover:scale-105 transition-transform">
+                                <img v-if="selectedTournamentData.winner_logo" :src="'/static/logos/' + selectedTournamentData.winner_logo" :alt="selectedTournamentData.winner_name" class="max-w-full max-h-full object-contain">
+                                <span v-else class="text-xs font-bold text-slate-500">?</span>
+                            </div>
+                            <span class="font-bold text-xs sm:text-sm text-white truncate w-full">{{ selectedTournamentData.winner_name || '-' }}</span>
+                            <span class="text-[10px] text-amber-400 font-mono font-bold mt-0.5">{{ selectedTournamentData.winner_id }}</span>
+                        </div>
+
+                        <!-- Runner-up -->
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-700 flex flex-col items-center text-center relative overflow-hidden group">
+                            <span class="text-[11px] font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center space-x-1">
+                                <span>🥈</span> <span>Runner-up</span>
+                            </span>
+                            <div class="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 p-1 flex items-center justify-center mb-2 shadow-inner group-hover:scale-105 transition-transform">
+                                <img v-if="selectedTournamentData.runner_up_logo" :src="'/static/logos/' + selectedTournamentData.runner_up_logo" :alt="selectedTournamentData.runner_up_name" class="max-w-full max-h-full object-contain">
+                                <span v-else class="text-xs font-bold text-slate-500">?</span>
+                            </div>
+                            <span class="font-bold text-xs sm:text-sm text-white truncate w-full">{{ selectedTournamentData.runner_up_name || '-' }}</span>
+                            <span class="text-[10px] text-slate-400 font-mono font-bold mt-0.5">{{ selectedTournamentData.runner_up_id }}</span>
+                        </div>
+
+                        <!-- Peringkat 3 -->
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-amber-800/40 flex flex-col items-center text-center relative overflow-hidden group">
+                            <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider mb-2 flex items-center space-x-1">
+                                <span>🥉</span> <span>Peringkat 3</span>
+                            </span>
+                            <div class="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 p-1 flex items-center justify-center mb-2 shadow-inner group-hover:scale-105 transition-transform">
+                                <img v-if="selectedTournamentData.third_place_logo" :src="'/static/logos/' + selectedTournamentData.third_place_logo" :alt="selectedTournamentData.third_place_name" class="max-w-full max-h-full object-contain">
+                                <span v-else class="text-xs font-bold text-slate-500">?</span>
+                            </div>
+                            <span class="font-bold text-xs sm:text-sm text-white truncate w-full">{{ selectedTournamentData.third_place_name || '-' }}</span>
+                            <span class="text-[10px] text-amber-600 font-mono font-bold mt-0.5">{{ selectedTournamentData.third_place_id }}</span>
+                        </div>
+
+                        <!-- Peringkat 4 -->
+                        <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-col items-center text-center relative overflow-hidden group">
+                            <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center space-x-1">
+                                <span>🎖️</span> <span>Peringkat 4</span>
+                            </span>
+                            <div class="w-12 h-12 rounded-xl bg-slate-950 border border-slate-800 p-1 flex items-center justify-center mb-2 shadow-inner group-hover:scale-105 transition-transform">
+                                <img v-if="selectedTournamentData.fourth_place_logo" :src="'/static/logos/' + selectedTournamentData.fourth_place_logo" :alt="selectedTournamentData.fourth_place_name" class="max-w-full max-h-full object-contain">
+                                <span v-else class="text-xs font-bold text-slate-500">?</span>
+                            </div>
+                            <span class="font-bold text-xs sm:text-sm text-white truncate w-full">{{ selectedTournamentData.fourth_place_name || '-' }}</span>
+                            <span class="text-[10px] text-slate-500 font-mono font-bold mt-0.5">{{ selectedTournamentData.fourth_place_id }}</span>
+                        </div>
+                    </div>
+
+                    <!-- Input Hasil Akhir / Finish Tournament (Ketika Status ONGOING) -->
+                    <div v-if="selectedTournamentData.status === 'ONGOING'" class="bg-slate-950/90 p-5 rounded-xl border border-amber-500/40 space-y-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                            <div>
+                                <h4 class="font-bold text-sm text-amber-400 flex items-center space-x-2">
+                                    <span>⚡</span>
+                                    <span>Tetapkan Hasil Akhir Turnamen Ini</span>
+                                </h4>
+                                <p class="text-xs text-slate-400">Pilih tim juara untuk mendistribusikan trofi & memperbarui poin Base Team/Region secara instan.</p>
+                            </div>
+                            <span class="text-[11px] font-bold px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                                Mode Input Turnamen
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                            <div>
+                                <label class="text-[11px] font-bold text-amber-400 block mb-1">🥇 Juara 1 (Wajib)</label>
+                                <select v-model="finishForm.winner_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                                    <option value="">Pilih Juara 1</option>
+                                    <option v-for="t in getAvailableTeamsForTournament(selectedTournamentData)" :key="t.id" :value="t.id">
+                                        {{ t.id }} - {{ t.name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-bold text-slate-300 block mb-1">🥈 Runner-up (Wajib)</label>
+                                <select v-model="finishForm.runner_up_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                                    <option value="">Pilih Runner-up</option>
+                                    <option v-for="t in getAvailableTeamsForTournament(selectedTournamentData)" :key="t.id" :value="t.id">
+                                        {{ t.id }} - {{ t.name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-bold text-amber-600 block mb-1">🥉 Peringkat 3</label>
+                                <select v-model="finishForm.third_place_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                                    <option value="">Pilih Peringkat 3</option>
+                                    <option v-for="t in getAvailableTeamsForTournament(selectedTournamentData)" :key="t.id" :value="t.id">
+                                        {{ t.id }} - {{ t.name }}
+                                    </option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-[11px] font-bold text-slate-500 block mb-1">🎖️ Peringkat 4</label>
+                                <select v-model="finishForm.fourth_place_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                                    <option value="">Pilih Peringkat 4</option>
+                                    <option v-for="t in getAvailableTeamsForTournament(selectedTournamentData)" :key="t.id" :value="t.id">
+                                        {{ t.id }} - {{ t.name }}
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end pt-2">
+                            <button @click="submitFinishTournament" 
+                                    :disabled="!finishForm.winner_id || !finishForm.runner_up_id"
+                                    :class="finishForm.winner_id && finishForm.runner_up_id ? 'bg-gradient-to-r from-amber-500 to-yellow-500 hover:from-amber-400 text-slate-950 font-bold' : 'bg-slate-800 text-slate-600 cursor-not-allowed'"
+                                    class="px-4 py-2 rounded-xl text-xs uppercase tracking-wider transition shadow-lg">
+                                Simpan Hasil & Selesaikan Turnamen
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- STAGE TABS (PLAYOFF vs SWISS STAGE / FASE GUGUR) & VIEW TOGGLE -->
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-slate-800">
+                        <!-- Stage Selector (if tournament has Swiss Stage, e.g. M-Series) -->
+                        <div v-if="hasSwissStage" class="flex items-center space-x-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                            <button @click="tournamentModalStage = 'PLAYOFF'"
+                                    :class="tournamentModalStage === 'PLAYOFF' ? 'bg-gradient-to-r from-amber-500 to-yellow-500 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'"
+                                    class="px-3 py-1.5 rounded-lg text-xs transition flex items-center space-x-1.5">
+                                <span>🏆 Babak Playoff</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.2 bg-black/20 rounded font-bold">({{ tournamentPlayoffMatches.length }})</span>
+                            </button>
+                            <button @click="tournamentModalStage = 'SWISS'"
+                                    :class="tournamentModalStage === 'SWISS' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'"
+                                    class="px-3 py-1.5 rounded-lg text-xs transition flex items-center space-x-1.5">
+                                <span>⚡ Fase Gugur (Swiss Stage)</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.2 bg-black/20 rounded font-bold">({{ tournamentSwissMatches.length }})</span>
+                            </button>
+                        </div>
+                        <div v-else>
+                            <h4 class="font-bold text-white text-base">Bagan Pertandingan ({{ selectedTournamentData.matches?.length || 0 }} Pertandingan)</h4>
+                        </div>
+
+                        <!-- View Toggle (Bracket Tree vs List) -->
+                        <div class="flex items-center space-x-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 self-end sm:self-auto">
+                            <button @click="tournamentModalView = 'bracket'"
+                                    :class="tournamentModalView === 'bracket' ? 'bg-slate-800 text-cyan-400 font-bold border border-cyan-500/30' : 'text-slate-400 hover:text-white border-transparent'"
+                                    class="px-2.5 py-1 rounded-lg text-xs border transition flex items-center space-x-1">
+                                <span>🌳 Bagan Bracket</span>
+                            </button>
+                            <button @click="tournamentModalView = 'list'"
+                                    :class="tournamentModalView === 'list' ? 'bg-slate-800 text-cyan-400 font-bold border border-cyan-500/30' : 'text-slate-400 hover:text-white border-transparent'"
+                                    class="px-2.5 py-1 rounded-lg text-xs border transition flex items-center space-x-1">
+                                <span>📋 Daftar Match</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 1. VIEW MODE: BRACKET VISUAL TREE -->
+                    <div v-if="tournamentModalView === 'bracket'" class="space-y-8 animate-fadeIn">
+                        
+                        <!-- 1A. PLAYOFF BRACKET (UPPER & LOWER BRACKET TREE) -->
+                        <div v-if="tournamentModalStage === 'PLAYOFF'" class="space-y-8">
+                            
+                            <!-- QUALIFIED (Tiket Lolos MPL -> MSL/M) -->
+                            <div v-if="playoffQualifierMatches.length > 0" class="bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-emerald-500/30 space-y-4">
+                                <div class="flex items-center space-x-2 pb-3 border-b border-slate-800">
+                                    <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+                                    <h5 class="font-black text-sm uppercase tracking-wider text-emerald-400">Qualified (Perebutan Tiket)</h5>
+                                </div>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    <div v-for="m in playoffQualifierMatches" :key="m.id"
+                                         class="bg-slate-900 rounded-xl border border-slate-800 hover:border-emerald-500/50 transition-all p-2.5 shadow-md space-y-1.5">
+                                        <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 pb-1 border-b border-slate-800/60">
+                                            <span>{{ m.round_name }}</span>
+                                            <div class="flex items-center space-x-1.5">
+                                                <span class="font-bold" :class="m.status === 'COMPLETED' ? 'text-emerald-400' : 'text-amber-400'">{{ m.status }}</span>
+                                                <button @click.stop="openEditMatchModal(m)" title="Edit Skor Pertandingan" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition">✏️</button>
+                                            </div>
+                                        </div>
+                                        <div v-for="side in [1, 2]" :key="side"
+                                             class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
+                                             :class="m.winner_id === m['team' + side + '_id'] ? 'bg-emerald-950/40 text-emerald-300 font-bold border border-emerald-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
+                                            <div class="flex items-center space-x-2 truncate pr-2">
+                                                <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                                    <img v-if="m['team' + side + '_logo']" :src="'/static/logos/' + m['team' + side + '_logo']" class="max-w-full max-h-full object-contain">
+                                                    <span v-else class="text-[9px] font-bold text-slate-500">{{ m['team' + side + '_id'] ? m['team' + side + '_id'].slice(0, 3) : '?' }}</span>
+                                                </div>
+                                                <span class="truncate text-xs">{{ m['team' + side + '_name'] || m['team' + side + '_id'] || 'TBD' }}</span>
+                                            </div>
+                                            <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
+                                                  :class="m.winner_id === m['team' + side + '_id'] ? 'bg-emerald-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                                {{ m['score' + side] !== null ? m['score' + side] : '-' }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- UPPER BRACKET -->
+                            <div class="bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-slate-800/80 space-y-4">
+                                <div class="flex items-center space-x-2 pb-3 border-b border-slate-800">
+                                    <span class="w-3 h-3 rounded-full bg-cyan-400"></span>
+                                    <h5 class="font-black text-sm uppercase tracking-wider text-cyan-400">Upper Bracket</h5>
+                                </div>
+
+                                <div class="flex flex-row space-x-6 overflow-x-auto pb-4 pt-1">
+                                    <div v-for="(round, rIdx) in playoffUpperRounds" :key="rIdx" class="flex flex-col space-y-4 shrink-0 min-w-[240px] sm:min-w-[260px]">
+                                        <div class="text-xs font-extrabold uppercase tracking-wider text-slate-400 px-1 flex items-center justify-between">
+                                            <span>{{ round.name }}</span>
+                                            <span class="text-[10px] text-slate-500 font-mono">{{ round.matches.length }} Match</span>
+                                        </div>
+
+                                        <div class="space-y-3 flex-1 flex flex-col justify-around">
+                                            <!-- Match Card -->
+                                            <div v-for="m in round.matches" :key="m.id"
+                                                 class="bg-slate-900 rounded-xl border border-slate-800 hover:border-cyan-500/50 transition-all p-2.5 shadow-md space-y-1.5">
+                                                <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 pb-1 border-b border-slate-800/60">
+                                                    <span>{{ m.round_name }}</span>
+                                                    <div class="flex items-center space-x-1.5">
+                                                        <span class="font-bold" :class="m.status === 'COMPLETED' ? 'text-emerald-400' : 'text-amber-400'">{{ m.status }}</span>
+                                                        <button @click.stop="openEditMatchModal(m)" title="Edit Skor Pertandingan" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition">
+                                                            ✏️
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Team 1 -->
+                                                <div class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
+                                                     :class="m.winner_id === m.team1_id ? 'bg-cyan-950/40 text-cyan-300 font-bold border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
+                                                    <div class="flex items-center space-x-2 truncate pr-2">
+                                                        <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                                            <img v-if="m.team1_logo" :src="'/static/logos/' + m.team1_logo" class="max-w-full max-h-full object-contain">
+                                                            <span v-else class="text-[9px] font-bold text-slate-500">{{ m.team1_id ? m.team1_id.slice(0, 3) : '?' }}</span>
+                                                        </div>
+                                                        <span class="truncate text-xs">{{ m.team1_name || m.team1_id || 'TBD' }}</span>
+                                                    </div>
+                                                    <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
+                                                          :class="m.winner_id === m.team1_id ? 'bg-cyan-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                                        {{ m.score1 !== null ? m.score1 : '-' }}
+                                                    </span>
+                                                </div>
+
+                                                <!-- Team 2 -->
+                                                <div class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
+                                                     :class="m.winner_id === m.team2_id ? 'bg-cyan-950/40 text-cyan-300 font-bold border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
+                                                    <div class="flex items-center space-x-2 truncate pr-2">
+                                                        <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                                            <img v-if="m.team2_logo" :src="'/static/logos/' + m.team2_logo" class="max-w-full max-h-full object-contain">
+                                                            <span v-else class="text-[9px] font-bold text-slate-500">{{ m.team2_id ? m.team2_id.slice(0, 3) : '?' }}</span>
+                                                        </div>
+                                                        <span class="truncate text-xs">{{ m.team2_name || m.team2_id || 'TBD' }}</span>
+                                                    </div>
+                                                    <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
+                                                          :class="m.winner_id === m.team2_id ? 'bg-cyan-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                                        {{ m.score2 !== null ? m.score2 : '-' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- LOWER BRACKET (If exists) -->
+                            <div v-if="playoffLowerRounds.length > 0" class="bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-slate-800/80 space-y-4">
+                                <div class="flex items-center space-x-2 pb-3 border-b border-slate-800">
+                                    <span class="w-3 h-3 rounded-full bg-purple-400"></span>
+                                    <h5 class="font-black text-sm uppercase tracking-wider text-purple-400">Lower Bracket (Fase Eliminasi)</h5>
+                                </div>
+
+                                <div class="flex flex-row space-x-6 overflow-x-auto pb-4 pt-1">
+                                    <div v-for="(round, rIdx) in playoffLowerRounds" :key="rIdx" class="flex flex-col space-y-4 shrink-0 min-w-[240px] sm:min-w-[260px]">
+                                        <div class="text-xs font-extrabold uppercase tracking-wider text-slate-400 px-1 flex items-center justify-between">
+                                            <span>{{ round.name }}</span>
+                                            <span class="text-[10px] text-slate-500 font-mono">{{ round.matches.length }} Match</span>
+                                        </div>
+
+                                        <div class="space-y-3 flex-1 flex flex-col justify-around">
+                                            <!-- Match Card -->
+                                            <div v-for="m in round.matches" :key="m.id"
+                                                 class="bg-slate-900 rounded-xl border border-slate-800 hover:border-purple-500/50 transition-all p-2.5 shadow-md space-y-1.5">
+                                                <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 pb-1 border-b border-slate-800/60">
+                                                    <span>{{ m.round_name }}</span>
+                                                    <div class="flex items-center space-x-1.5">
+                                                        <span class="font-bold" :class="m.status === 'COMPLETED' ? 'text-emerald-400' : 'text-amber-400'">{{ m.status }}</span>
+                                                        <button @click.stop="openEditMatchModal(m)" title="Edit Skor Pertandingan" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition">
+                                                            ✏️
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Team 1 -->
+                                                <div class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
+                                                     :class="m.winner_id === m.team1_id ? 'bg-purple-950/40 text-purple-300 font-bold border border-purple-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
+                                                    <div class="flex items-center space-x-2 truncate pr-2">
+                                                        <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                                            <img v-if="m.team1_logo" :src="'/static/logos/' + m.team1_logo" class="max-w-full max-h-full object-contain">
+                                                            <span v-else class="text-[9px] font-bold text-slate-500">{{ m.team1_id ? m.team1_id.slice(0, 3) : '?' }}</span>
+                                                        </div>
+                                                        <span class="truncate text-xs">{{ m.team1_name || m.team1_id || 'TBD' }}</span>
+                                                    </div>
+                                                    <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
+                                                          :class="m.winner_id === m.team1_id ? 'bg-purple-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                                        {{ m.score1 !== null ? m.score1 : '-' }}
+                                                    </span>
+                                                </div>
+
+                                                <!-- Team 2 -->
+                                                <div class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
+                                                     :class="m.winner_id === m.team2_id ? 'bg-purple-950/40 text-purple-300 font-bold border border-purple-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
+                                                    <div class="flex items-center space-x-2 truncate pr-2">
+                                                        <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                                            <img v-if="m.team2_logo" :src="'/static/logos/' + m.team2_logo" class="max-w-full max-h-full object-contain">
+                                                            <span v-else class="text-[9px] font-bold text-slate-500">{{ m.team2_id ? m.team2_id.slice(0, 3) : '?' }}</span>
+                                                        </div>
+                                                        <span class="truncate text-xs">{{ m.team2_name || m.team2_id || 'TBD' }}</span>
+                                                    </div>
+                                                    <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
+                                                          :class="m.winner_id === m.team2_id ? 'bg-purple-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                                        {{ m.score2 !== null ? m.score2 : '-' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- GRAND FINAL CENTERPIECE -->
+                            <div v-if="playoffGrandFinal" class="bg-gradient-to-r from-amber-950/20 via-slate-900 to-amber-950/20 p-5 rounded-2xl border border-amber-500/40 shadow-xl flex flex-col items-center space-y-4">
+                                <div class="flex items-center justify-between w-full max-w-md px-1">
+                                    <div class="flex items-center space-x-2 text-amber-400 font-black text-sm uppercase tracking-wider">
+                                        <span>👑</span>
+                                        <span>GRAND FINAL CHAMPIONSHIP (BO5)</span>
+                                    </div>
+                                    <button @click.stop="openEditMatchModal(playoffGrandFinal)" class="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 font-bold text-xs flex items-center space-x-1 border border-slate-700 transition">
+                                        <span>✏️</span>
+                                        <span>Edit Skor</span>
+                                    </button>
+                                </div>
+
+                                <div class="w-full max-w-md bg-slate-950/90 rounded-2xl border border-amber-500/40 p-4 space-y-3 shadow-2xl">
+                                    <!-- Team 1 -->
+                                    <div class="flex items-center justify-between p-2 rounded-xl transition-all"
+                                         :class="playoffGrandFinal.winner_id === playoffGrandFinal.team1_id ? 'bg-amber-500/20 border border-amber-500/50' : 'bg-slate-900/60'">
+                                        <div class="flex items-center space-x-3 truncate">
+                                            <div class="w-9 h-9 rounded-xl bg-slate-950 border border-slate-800 p-1 flex items-center justify-center shrink-0 shadow-inner">
+                                                <img v-if="playoffGrandFinal.team1_logo" :src="'/static/logos/' + playoffGrandFinal.team1_logo" class="max-w-full max-h-full object-contain">
+                                                <span v-else class="text-xs font-bold text-slate-500">?</span>
+                                            </div>
+                                            <div>
+                                                <h6 class="font-bold text-sm text-white truncate">{{ playoffGrandFinal.team1_name || playoffGrandFinal.team1_id }}</h6>
+                                                <span v-if="playoffGrandFinal.winner_id === playoffGrandFinal.team1_id" class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">👑 JUARA DUNIA</span>
+                                            </div>
+                                        </div>
+                                        <span class="font-mono font-black text-lg px-3 py-1 rounded-lg"
+                                              :class="playoffGrandFinal.winner_id === playoffGrandFinal.team1_id ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                            {{ playoffGrandFinal.score1 !== null ? playoffGrandFinal.score1 : '-' }}
+                                        </span>
+                                    </div>
+
+                                    <!-- Team 2 -->
+                                    <div class="flex items-center justify-between p-2 rounded-xl transition-all"
+                                         :class="playoffGrandFinal.winner_id === playoffGrandFinal.team2_id ? 'bg-amber-500/20 border border-amber-500/50' : 'bg-slate-900/60'">
+                                        <div class="flex items-center space-x-3 truncate">
+                                            <div class="w-9 h-9 rounded-xl bg-slate-950 border border-slate-800 p-1 flex items-center justify-center shrink-0 shadow-inner">
+                                                <img v-if="playoffGrandFinal.team2_logo" :src="'/static/logos/' + playoffGrandFinal.team2_logo" class="max-w-full max-h-full object-contain">
+                                                <span v-else class="text-xs font-bold text-slate-500">?</span>
+                                            </div>
+                                            <div>
+                                                <h6 class="font-bold text-sm text-white truncate">{{ playoffGrandFinal.team2_name || playoffGrandFinal.team2_id }}</h6>
+                                                <span v-if="playoffGrandFinal.winner_id === playoffGrandFinal.team2_id" class="text-[10px] text-amber-400 font-bold uppercase tracking-wider">👑 JUARA DUNIA</span>
+                                            </div>
+                                        </div>
+                                        <span class="font-mono font-black text-lg px-3 py-1 rounded-lg"
+                                              :class="playoffGrandFinal.winner_id === playoffGrandFinal.team2_id ? 'bg-amber-500 text-slate-950 font-black' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                            {{ playoffGrandFinal.score2 !== null ? playoffGrandFinal.score2 : '-' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 1B. SWISS STAGE / FASE GUGUR VISUAL VIEW -->
+                        <div v-else-if="tournamentModalStage === 'SWISS'" class="space-y-6">
+                            
+                            <!-- Swiss Stage Qualification Summary Cards -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- 8 Qualified Teams -->
+                                <div class="p-4 rounded-xl bg-emerald-950/20 border border-emerald-500/40 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <h5 class="text-xs font-black uppercase tracking-wider text-emerald-400 flex items-center space-x-1.5">
+                                            <span>✓</span>
+                                            <span>8 Tim Lolos ke Babak Playoff</span>
+                                        </h5>
+                                        <span class="text-[11px] font-bold text-emerald-400 font-mono">3 Kemenangan</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        <div v-for="t in swissQualifiedTeams" :key="t.id"
+                                             class="flex items-center space-x-1.5 bg-slate-950/80 p-1.5 rounded-lg border border-emerald-500/30">
+                                            <div class="w-6 h-6 rounded bg-slate-900 p-0.5 flex items-center justify-center shrink-0">
+                                                <img v-if="t.logo" :src="'/static/logos/' + t.logo" class="max-w-full max-h-full object-contain">
+                                                <span v-else class="text-[9px] font-bold text-slate-400">{{ t.id }}</span>
+                                            </div>
+                                            <span class="text-xs font-bold text-white truncate">{{ t.name }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 8 Eliminated Teams -->
+                                <div class="p-4 rounded-xl bg-rose-950/20 border border-rose-500/40 space-y-3">
+                                    <div class="flex items-center justify-between">
+                                        <h5 class="text-xs font-black uppercase tracking-wider text-rose-400 flex items-center space-x-1.5">
+                                            <span>✕</span>
+                                            <span>8 Tim Tereliminasi</span>
+                                        </h5>
+                                        <span class="text-[11px] font-bold text-rose-400 font-mono">3 Kekalahan</span>
+                                    </div>
+                                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                        <div v-for="t in swissEliminatedTeams" :key="t.id"
+                                             class="flex items-center space-x-1.5 bg-slate-950/80 p-1.5 rounded-lg border border-rose-500/30 opacity-70">
+                                            <div class="w-6 h-6 rounded bg-slate-900 p-0.5 flex items-center justify-center shrink-0">
+                                                <img v-if="t.logo" :src="'/static/logos/' + t.logo" class="max-w-full max-h-full object-contain">
+                                                <span v-else class="text-[9px] font-bold text-slate-400">{{ t.id }}</span>
+                                            </div>
+                                            <span class="text-xs font-medium text-slate-300 truncate">{{ t.name }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Swiss Stage 5 Rounds Grid Flow -->
+                            <div class="flex flex-row space-x-6 overflow-x-auto pb-4 pt-1">
+                                <div v-for="(sr, sIdx) in swissRounds" :key="sIdx"
+                                     class="flex flex-col space-y-3 shrink-0 min-w-[260px] sm:min-w-[280px]">
+                                    <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+                                        <div class="flex items-center justify-between">
+                                            <h6 class="font-extrabold text-xs text-white uppercase">{{ sr.roundTitle }}</h6>
+                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded border" :class="sr.badgeClass">{{ sr.badge }}</span>
+                                        </div>
+                                        <p class="text-[11px] text-slate-400 truncate">{{ sr.poolName }}</p>
+                                    </div>
+
+                                    <!-- Matches in this round -->
+                                    <div class="space-y-2.5">
+                                        <div v-for="m in sr.matches" :key="m.id"
+                                             class="bg-slate-900/90 rounded-xl border border-slate-800 hover:border-cyan-500/40 p-2.5 shadow-sm space-y-1.5 transition">
+                                            <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 pb-1 border-b border-slate-800/60">
+                                                <span>Match #{{ m.match_order }} • {{ m.bracket_type }}</span>
+                                                <button @click.stop="openEditMatchModal(m)" title="Edit Skor Pertandingan" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition">
+                                                    ✏️
+                                                </button>
+                                            </div>
+
+                                            <!-- Team 1 -->
+                                            <div class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
+                                                 :class="m.winner_id === m.team1_id ? 'bg-cyan-950/40 text-cyan-300 font-bold border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
+                                                <div class="flex items-center space-x-2 truncate pr-2">
+                                                    <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                                        <img v-if="m.team1_logo" :src="'/static/logos/' + m.team1_logo" class="max-w-full max-h-full object-contain">
+                                                        <span v-else class="text-[9px] font-bold text-slate-500">{{ m.team1_id ? m.team1_id.slice(0, 3) : '?' }}</span>
+                                                    </div>
+                                                    <span class="truncate text-xs">{{ m.team1_name || m.team1_id }}</span>
+                                                </div>
+                                                <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
+                                                      :class="m.winner_id === m.team1_id ? 'bg-cyan-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                                    {{ m.score1 !== null ? m.score1 : '-' }}
+                                                </span>
+                                            </div>
+
+                                            <!-- Team 2 -->
+                                            <div class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
+                                                 :class="m.winner_id === m.team2_id ? 'bg-cyan-950/40 text-cyan-300 font-bold border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
+                                                <div class="flex items-center space-x-2 truncate pr-2">
+                                                    <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                                        <img v-if="m.team2_logo" :src="'/static/logos/' + m.team2_logo" class="max-w-full max-h-full object-contain">
+                                                        <span v-else class="text-[9px] font-bold text-slate-500">{{ m.team2_id ? m.team2_id.slice(0, 3) : '?' }}</span>
+                                                    </div>
+                                                    <span class="truncate text-xs">{{ m.team2_name || m.team2_id }}</span>
+                                                </div>
+                                                <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
+                                                      :class="m.winner_id === m.team2_id ? 'bg-cyan-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                                    {{ m.score2 !== null ? m.score2 : '-' }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- 2. VIEW MODE: DAFTAR PERTANDINGAN (LIST VIEW) -->
+                    <div v-else-if="tournamentModalView === 'list'" class="space-y-4 animate-fadeIn">
+                        <div class="flex items-center justify-between text-xs text-slate-400">
+                            <span>Menampilkan {{ currentStageMatches.length }} pertandingan di {{ tournamentModalStage === 'SWISS' ? 'Fase Gugur (Swiss Stage)' : 'Babak Playoff' }}</span>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div v-for="m in currentStageMatches" :key="m.id"
+                                 class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-0 hover:border-slate-700 transition">
+                                <div class="flex items-center space-x-2 sm:space-x-3 w-full sm:w-1/3">
+                                    <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-400 shrink-0">{{ m.round_name }}</span>
+                                    <span class="text-[11px] text-slate-500 font-mono truncate">{{ m.bracket_type }}</span>
+                                </div>
+                                
+                                <div class="flex items-center justify-center space-x-2 sm:space-x-4 w-full sm:w-1/2">
+                                    <!-- Team 1 -->
+                                    <div class="flex items-center justify-end space-x-2 flex-1 truncate" :class="m.winner_id === m.team1_id ? 'text-emerald-400 font-bold' : 'text-slate-300'">
+                                        <span class="truncate text-xs sm:text-sm">{{ m.team1_name || m.team1_id }}</span>
+                                        <div class="w-6 h-6 rounded bg-slate-900 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                            <img v-if="m.team1_logo" :src="'/static/logos/' + m.team1_logo" class="max-w-full max-h-full object-contain">
+                                        </div>
+                                    </div>
+
+                                    <!-- Score Box -->
+                                    <div class="px-2.5 py-1 bg-slate-900 rounded font-mono font-bold text-xs sm:text-sm text-cyan-400 border border-slate-800 shrink-0">
+                                        {{ m.score1 !== null ? m.score1 : '-' }} : {{ m.score2 !== null ? m.score2 : '-' }}
+                                    </div>
+
+                                    <!-- Team 2 -->
+                                    <div class="flex items-center justify-start space-x-2 flex-1 truncate" :class="m.winner_id === m.team2_id ? 'text-emerald-400 font-bold' : 'text-slate-300'">
+                                        <div class="w-6 h-6 rounded bg-slate-900 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                            <img v-if="m.team2_logo" :src="'/static/logos/' + m.team2_logo" class="max-w-full max-h-full object-contain">
+                                        </div>
+                                        <span class="truncate text-xs sm:text-sm">{{ m.team2_name || m.team2_id }}</span>
+                                    </div>
+                                </div>
+
+                                <div class="w-full sm:w-1/6 flex items-center justify-between sm:justify-end space-x-2">
+                                    <div>
+                                        <span v-if="m.winner_id" class="text-xs font-bold text-emerald-400">Pemenang: {{ m.winner_id }}</span>
+                                        <span v-else class="text-xs text-amber-500 italic">Belum Tuntas</span>
+                                    </div>
+                                    <button @click.stop="openEditMatchModal(m)" title="Edit Skor Match" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold text-xs border border-slate-700 transition flex items-center space-x-1">
+                                        <span>✏️</span>
+                                        <span class="hidden sm:inline text-[11px]">Edit</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- 8. MODAL EDIT SKOR PERTANDINGAN (NEW FEATURE!) -->
+            <div v-if="editingMatch" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-5 shadow-2xl animate-fadeIn">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <div>
+                            <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">{{ editingMatch.round_name }} • {{ editingMatch.bracket_type }}</span>
+                            <h3 class="text-lg font-black text-white">Input & Edit Skor Pertandingan</h3>
+                        </div>
+                        <button @click="editingMatch = null" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">✕</button>
+                    </div>
+
+                    <!-- Scores Form -->
+                    <div class="space-y-4">
+                        <!-- Team 1 -->
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5 truncate pr-2">
+                                <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shrink-0">
+                                    <img v-if="editingMatch.team1_logo" :src="'/static/logos/' + editingMatch.team1_logo" class="max-w-full max-h-full object-contain">
+                                    <span v-else class="text-xs font-bold text-slate-500">?</span>
+                                </div>
+                                <div class="truncate">
+                                    <h5 class="text-xs font-bold text-white truncate">{{ editingMatch.team1_name || editingMatch.team1_id }}</h5>
+                                    <span class="text-[10px] text-slate-500 font-mono">{{ editingMatch.team1_id }}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-1.5 shrink-0">
+                                <span class="text-xs font-bold text-slate-400">Skor:</span>
+                                <input type="number" min="0" max="10" v-model.number="matchEditForm.score1" @input="onScoreInputAutoWinner"
+                                       class="w-14 bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-2 text-center font-mono font-bold text-base text-cyan-400 focus:border-cyan-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Team 2 -->
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
+                            <div class="flex items-center space-x-2.5 truncate pr-2">
+                                <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shrink-0">
+                                    <img v-if="editingMatch.team2_logo" :src="'/static/logos/' + editingMatch.team2_logo" class="max-w-full max-h-full object-contain">
+                                    <span v-else class="text-xs font-bold text-slate-500">?</span>
+                                </div>
+                                <div class="truncate">
+                                    <h5 class="text-xs font-bold text-white truncate">{{ editingMatch.team2_name || editingMatch.team2_id }}</h5>
+                                    <span class="text-[10px] text-slate-500 font-mono">{{ editingMatch.team2_id }}</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-1.5 shrink-0">
+                                <span class="text-xs font-bold text-slate-400">Skor:</span>
+                                <input type="number" min="0" max="10" v-model.number="matchEditForm.score2" @input="onScoreInputAutoWinner"
+                                       class="w-14 bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-2 text-center font-mono font-bold text-base text-cyan-400 focus:border-cyan-500 focus:outline-none">
+                            </div>
+                        </div>
+
+                        <!-- Winner Selection -->
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-300 block mb-1">Tim Pemenang</label>
+                            <select v-model="matchEditForm.winner_id" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none">
+                                <option :value="editingMatch.team1_id">{{ editingMatch.team1_name || editingMatch.team1_id }} (Tim 1 Menang)</option>
+                                <option :value="editingMatch.team2_id">{{ editingMatch.team2_name || editingMatch.team2_id }} (Tim 2 Menang)</option>
+                                <option value="">Belum Ditentukan / Seri</option>
+                            </select>
+                        </div>
+
+                        <!-- Status Selection -->
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-300 block mb-1">Status Pertandingan</label>
+                            <select v-model="matchEditForm.status" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none">
+                                <option value="COMPLETED">COMPLETED (Selesai)</option>
+                                <option value="ONGOING">ONGOING (Sedang Berlangsung)</option>
+                                <option value="PENDING">PENDING (Menunggu)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center justify-end space-x-2 pt-3 border-t border-slate-800">
+                        <button @click="editingMatch = null" class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
+                            Batal
+                        </button>
+                        <button @click="saveMatchScore" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg transition">
+                            💾 Simpan Skor
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. TEAM TROPHY CABINET MODAL -->
+            <div v-if="selectedTeamForCabinet" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl max-h-[85vh] overflow-y-auto p-6 space-y-5 shadow-2xl">
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-12 h-12 bg-slate-950 rounded-xl border border-slate-800 p-1 flex items-center justify-center">
+                                <img v-if="selectedTeamForCabinet.logo" :src="'/static/logos/' + selectedTeamForCabinet.logo" class="max-w-full max-h-full object-contain">
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-white">{{ selectedTeamForCabinet.name }}</h3>
+                                <p class="text-xs text-slate-400">Region: {{ selectedTeamForCabinet.region_id }} • Total Poin: <strong class="text-cyan-400 font-mono">{{ selectedTeamForCabinet.points }} Pts</strong></p>
+                            </div>
+                        </div>
+                        <button @click="selectedTeamForCabinet = null" class="text-slate-400 hover:text-white">✕</button>
+                    </div>
+
+                    <h4 class="font-bold text-white text-sm">Koleksi Trofi Resmi ({{ selectedTeamForCabinet.trophies_detail?.length || 0 }} Gelar)</h4>
+                    
+                    <div v-if="selectedTeamForCabinet.trophies_detail && selectedTeamForCabinet.trophies_detail.length > 0" class="space-y-2">
+                        <div v-for="(t, idx) in selectedTeamForCabinet.trophies_detail" :key="idx"
+                             class="bg-slate-950 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <img :src="'/static/trofi/' + t.image" class="w-8 h-8 object-contain">
+                                <div>
+                                    <h5 class="font-bold text-sm text-white">{{ t.title }}</h5>
+                                    <span class="text-xs text-slate-500">Season {{ t.season }} • Placement #{{ t.placement }}</span>
+                                </div>
+                            </div>
+                            <span class="font-mono font-bold text-sm text-cyan-400">+{{ t.points }} Pts</span>
+                        </div>
+                    </div>
+                    <div v-else class="text-center py-6 text-slate-500 text-sm italic">
+                        Tim ini belum memiliki trofi resmi.
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Footer -->
+        <footer class="border-t border-slate-800/60 bg-slate-950/80 py-4 text-center text-xs text-slate-500">
+            Billiard Championship Automation System • Official Trophy Integration & Season Workflow Engine
+        </footer>
+    </div>
+
+    <!-- Main Vue App Script -->
+    <script src="app.js?v=2.2"></script>
+</body>
+</html>

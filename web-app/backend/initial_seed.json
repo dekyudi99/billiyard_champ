@@ -1,0 +1,398 @@
+{
+  "regions": [
+    {
+      "id": "MEA",
+      "name": "Middle East & Arabia / Europe",
+      "m_points": 1000,
+      "msl_points": 3750,
+      "comp_points": 200,
+      "total_points": 4950
+    },
+    {
+      "id": "PEL",
+      "name": "Peace Elite / East Asia",
+      "m_points": 4000,
+      "msl_points": 0,
+      "comp_points": 200,
+      "total_points": 4200
+    },
+    {
+      "id": "ID",
+      "name": "Indonesia",
+      "m_points": 2250,
+      "msl_points": 750,
+      "comp_points": 200,
+      "total_points": 3200
+    },
+    {
+      "id": "SEA",
+      "name": "Southeast Asia",
+      "m_points": 1250,
+      "msl_points": 1500,
+      "comp_points": 200,
+      "total_points": 2950
+    },
+    {
+      "id": "PH",
+      "name": "Philippines",
+      "m_points": 2250,
+      "msl_points": 0,
+      "comp_points": 200,
+      "total_points": 2450
+    },
+    {
+      "id": "MY",
+      "name": "Malaysia",
+      "m_points": 500,
+      "msl_points": 0,
+      "comp_points": 300,
+      "total_points": 800
+    },
+    {
+      "id": "AM",
+      "name": "Americas",
+      "m_points": 0,
+      "msl_points": 0,
+      "comp_points": 200,
+      "total_points": 200
+    }
+  ],
+  "teams": [
+    {
+      "id": "T1",
+      "name": "T1",
+      "region": "PEL",
+      "points": 6000,
+      "rank": 1,
+      "logo": "T1_2019_allmode.png"
+    },
+    {
+      "id": "AE",
+      "name": "Alter Ego",
+      "region": "ID",
+      "points": 5250,
+      "rank": 2,
+      "logo": "Alter_Ego_allmode.png"
+    },
+    {
+      "id": "VIT",
+      "name": "Team Vitality",
+      "region": "MEA",
+      "points": 4500,
+      "rank": 3,
+      "logo": "Team_Vitality_2023_darkmode.png"
+    },
+    {
+      "id": "TLPH",
+      "name": "Team Liquid PH",
+      "region": "PH",
+      "points": 4500,
+      "rank": 4,
+      "logo": "team-liquid-25-year-seeklogo.png"
+    },
+    {
+      "id": "ROPH",
+      "name": "Aurora Gaming PH",
+      "region": "PH",
+      "points": 3750,
+      "rank": 5,
+      "logo": "Team_Logo_season_13_Aurora_Gaming.png"
+    },
+    {
+      "id": "TL",
+      "name": "Team Liquid",
+      "region": "AM",
+      "points": 3500,
+      "rank": 6,
+      "logo": "Team_Logo_season_6_Team_Liquid.png"
+    },
+    {
+      "id": "RORA",
+      "name": "Aurora Gaming",
+      "region": "MEA",
+      "points": 3250,
+      "rank": 7,
+      "logo": "Team_Logo_season_12_Aurora_Gaming.png"
+    },
+    {
+      "id": "YG",
+      "name": "Yangon Galacticos",
+      "region": "SEA",
+      "points": 3000,
+      "rank": 8,
+      "logo": "Yangon_Galacticos_2021_allmode.png"
+    },
+    {
+      "id": "CFU",
+      "name": "CFU Gaming",
+      "region": "SEA",
+      "points": 2750,
+      "rank": 9,
+      "logo": "CFU_Gaming_2024_allmode.png"
+    },
+    {
+      "id": "AG",
+      "name": "All Gamers",
+      "region": "MY",
+      "points": 2500,
+      "rank": 10,
+      "logo": "All_Gamers_allmode.png"
+    },
+    {
+      "id": "WBG",
+      "name": "Weibo Gaming",
+      "region": "PEL",
+      "points": 2500,
+      "rank": 11,
+      "logo": "Weibo_allmode.png"
+    },
+    {
+      "id": "SRG",
+      "name": "Selangor Red Giants",
+      "region": "MY",
+      "points": 2000,
+      "rank": 12,
+      "logo": "Selangor_Red_Giants_2024_allmode.png"
+    },
+    {
+      "id": "FNC",
+      "name": "Fnatic",
+      "region": "MEA",
+      "points": 1750,
+      "rank": 13,
+      "logo": "1199px-Fnatic_2020_allmode.png"
+    },
+    {
+      "id": "IHC",
+      "name": "IHC Esports",
+      "region": "PEL",
+      "points": 1500,
+      "rank": 14,
+      "logo": "IHC_ESPORTS_allmode.png"
+    },
+    {
+      "id": "ONIC",
+      "name": "ONIC Esports",
+      "region": "ID",
+      "points": 1500,
+      "rank": 15,
+      "logo": "ONIC_Esports_allmode.png"
+    },
+    {
+      "id": "PRX",
+      "name": "Paper Rex",
+      "region": "SEA",
+      "points": 1500,
+      "rank": 16,
+      "logo": "Paper_Rex_darkmode.png"
+    },
+    {
+      "id": "G2",
+      "name": "G2 Esports",
+      "region": "MEA",
+      "points": 1250,
+      "rank": 17,
+      "logo": "G2_Esports_allmode.png"
+    },
+    {
+      "id": "RRQ",
+      "name": "RRQ",
+      "region": "ID",
+      "points": 1250,
+      "rank": 18,
+      "logo": "RRQ_RYU_allmode.png"
+    },
+    {
+      "id": "HBSE",
+      "name": "HomeBois",
+      "region": "MY",
+      "points": 1000,
+      "rank": 19,
+      "logo": "HomeBois_allmode.png"
+    },
+    {
+      "id": "A7",
+      "name": "Alpha7 Esports",
+      "region": "AM",
+      "points": 1000,
+      "rank": 20,
+      "logo": "A7_eSports_darkmode.png"
+    },
+    {
+      "id": "C9",
+      "name": "Cloud9",
+      "region": "AM",
+      "points": 1000,
+      "rank": 21,
+      "logo": "C9logo_std.png"
+    },
+    {
+      "id": "EVOS",
+      "name": "EVOS Esports",
+      "region": "ID",
+      "points": 1000,
+      "rank": 22,
+      "logo": "EVOS_ESPORTS_NewLogo.png"
+    },
+    {
+      "id": "APG",
+      "name": "Alpha Gaming",
+      "region": "MY",
+      "points": 1000,
+      "rank": 23,
+      "logo": "Alpha_Gaming_2024_allmode.png"
+    },
+    {
+      "id": "FLCN",
+      "name": "Team Falcons",
+      "region": "MEA",
+      "points": 500,
+      "rank": 24,
+      "logo": "Team_Logo_season_12_Team_Falcons.png"
+    },
+    {
+      "id": "FUR",
+      "name": "FURIA Esports",
+      "region": "AM",
+      "points": 500,
+      "rank": 25,
+      "logo": "FURIA_Esports_allmode.png"
+    },
+    {
+      "id": "FAZE",
+      "name": "FaZe Clan",
+      "region": "AM",
+      "points": 0,
+      "rank": 26,
+      "logo": "FaZe_Clan_2018_lightmode.png"
+    },
+    {
+      "id": "LLL",
+      "name": "LOUD",
+      "region": "AM",
+      "points": 0,
+      "rank": 27,
+      "logo": "LOUD_allmode.png"
+    },
+    {
+      "id": "BTR",
+      "name": "Bigetron",
+      "region": "ID",
+      "points": 0,
+      "rank": 28,
+      "logo": "Bigetron_2020_allmode.png"
+    },
+    {
+      "id": "NAVJ",
+      "name": "NAVI Junior",
+      "region": "ID",
+      "points": 0,
+      "rank": 29,
+      "logo": "Team_Logo_season_8_NAVI_Junior.png"
+    },
+    {
+      "id": "NAVI",
+      "name": "Natus Vincere",
+      "region": "MEA",
+      "points": 0,
+      "rank": 30,
+      "logo": "1010px-Natus_Vincere_allmode.png"
+    },
+    {
+      "id": "TDK",
+      "name": "Todak",
+      "region": "MY",
+      "points": 0,
+      "rank": 31,
+      "logo": "Todak_darkmode.png"
+    },
+    {
+      "id": "NV",
+      "name": "Nova Esports",
+      "region": "MY",
+      "points": 0,
+      "rank": 32,
+      "logo": "Nova_Esports_LATAM_allmode.png"
+    },
+    {
+      "id": "DRX",
+      "name": "DRX",
+      "region": "PEL",
+      "points": 0,
+      "rank": 33,
+      "logo": "DRX_allmode.png"
+    },
+    {
+      "id": "DK",
+      "name": "Dplus KIA",
+      "region": "PEL",
+      "points": 0,
+      "rank": 34,
+      "logo": "Dplus_full_darkmode.png"
+    },
+    {
+      "id": "NS",
+      "name": "NS RedForce",
+      "region": "PEL",
+      "points": 0,
+      "rank": 35,
+      "logo": "NS_Redforce_allmode.png"
+    },
+    {
+      "id": "APBR",
+      "name": "Falcons AP.Bren",
+      "region": "PH",
+      "points": 0,
+      "rank": 36,
+      "logo": "709px-AP_Bren_allmode.png"
+    },
+    {
+      "id": "ONPH",
+      "name": "ONIC PH",
+      "region": "PH",
+      "points": 0,
+      "rank": 37,
+      "logo": "ONIC_Esports_2019_allmode.png"
+    },
+    {
+      "id": "BOOM",
+      "name": "BOOM Esports",
+      "region": "PH",
+      "points": 0,
+      "rank": 38,
+      "logo": "Boom_Esports_allmode.png"
+    },
+    {
+      "id": "FLCP",
+      "name": "Team Falcons PH",
+      "region": "PH",
+      "points": 0,
+      "rank": 39,
+      "logo": "Team_Logo_season_13_Team_Falcons.png"
+    },
+    {
+      "id": "VPE",
+      "name": "Vampire Esports",
+      "region": "SEA",
+      "points": 0,
+      "rank": 40,
+      "logo": "Vampire_Esports_2022_allmode.png"
+    },
+    {
+      "id": "FL",
+      "name": "Team Flash",
+      "region": "SEA",
+      "points": 0,
+      "rank": 41,
+      "logo": "Team_Flash_allmode.png"
+    },
+    {
+      "id": "ESB",
+      "name": "ESB Legacy",
+      "region": "SEA",
+      "points": 0,
+      "rank": 42,
+      "logo": "ESB_Legacy_mlbb_darkmode.png"
+    }
+  ]
+}

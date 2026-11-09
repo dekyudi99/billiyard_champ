@@ -1,0 +1,16 @@
+services:
+  billiard-championship:
+    build:
+      context: ./web-app
+      dockerfile: Dockerfile
+    container_name: billiard_championship_app
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    volumes:
+      - ./web-app/backend:/app/backend
+      - ./web-app/frontend:/app/frontend
+      - ./web-app/trofi:/app/trofi
+      - ./web-app/logos:/app/logos
+    environment:
+      - PORT=8000
