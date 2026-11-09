@@ -203,10 +203,14 @@ createApp({
         const openEditMatchModal = (m) => {
             editingMatch.value = m;
             matchEditForm.value = {
+                team1_id: m.team1_id || '',
+                team2_id: m.team2_id || '',
                 score1: m.score1 !== null ? m.score1 : 0,
                 score2: m.score2 !== null ? m.score2 : 0,
                 winner_id: m.winner_id || '',
-                status: m.status || 'COMPLETED'
+                status: m.status || 'COMPLETED',
+                round_name: m.round_name || '',
+                bracket_type: m.bracket_type || ''
             };
         };
 
@@ -214,10 +218,48 @@ createApp({
             if (!editingMatch.value) return;
             const s1 = parseInt(matchEditForm.value.score1);
             const s2 = parseInt(matchEditForm.value.score2);
+            const t1 = matchEditForm.value.team1_id;
+            const t2 = matchEditForm.value.team2_id;
             if (!isNaN(s1) && !isNaN(s2)) {
-                if (s1 > s2) matchEditForm.value.winner_id = editingMatch.value.team1_id;
-                else if (s2 > s1) matchEditForm.value.winner_id = editingMatch.value.team2_id;
+                if (s1 > s2) matchEditForm.value.winner_id = t1;
+                else if (s2 > s1) matchEditForm.value.winner_id = t2;
                 else matchEditForm.value.winner_id = '';
+            }
+        };
+
+        const onTeamSelectChange = () => {
+            onScoreInputAutoWinner();
+        };
+
+        const getRegionalTeamsForCurrentTournament = computed(() => {
+            if (!selectedTournamentData.value) return teams.value;
+            const reg = selectedTournamentData.value.region_id;
+            if (reg && reg !== 'GLOBAL') {
+                return teams.value.filter(t => t.region_id === reg);
+            }
+            return teams.value;
+        });
+
+        const getTeamObject = (teamId) => {
+            if (!teamId) return null;
+            return teams.value.find(t => t.id === teamId) || null;
+        };
+
+        const getTeamDisplayName = (teamId) => {
+            if (!teamId) return 'Pilih Tim / TBD';
+            const t = teams.value.find(tm => tm.id === teamId);
+            return t ? `${t.name} (${t.id})` : teamId;
+        };
+
+        const generateQualifiers = async (tournamentId) => {
+            try {
+                const res = await fetch(`/api/tournaments/${tournamentId}/generate-mpl-qualifiers`, { method: 'POST' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.detail || "Gagal menambahkan babak kualifikasi");
+                alert(data.message);
+                await selectTournament(tournamentId);
+            } catch (e) {
+                alert("Error: " + e.message);
             }
         };
 
@@ -385,7 +427,8 @@ createApp({
             if (tournamentModalStage.value === 'SWISS') {
                 return tournamentSwissMatches.value;
             }
-            return [...tournamentPlayoffMatches.value, ...playoffQualifierMatches.value];
+            const all = [...playoffQualifierMatches.value, ...tournamentPlayoffMatches.value];
+            return all.sort((a, b) => (a.match_order || a.id || 0) - (b.match_order || b.id || 0));
         });
 
         const playoffUpperRounds = computed(() => {
@@ -552,6 +595,11 @@ createApp({
             matchEditForm,
             openEditMatchModal,
             onScoreInputAutoWinner,
+            onTeamSelectChange,
+            getRegionalTeamsForCurrentTournament,
+            getTeamObject,
+            getTeamDisplayName,
+            generateQualifiers,
             saveMatchScore,
             finishForm,
             getAvailableTeamsForTournament,

@@ -9,7 +9,7 @@
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=2.2">
+    <link rel="stylesheet" href="style.css?v=2.3">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-cyan-500 selection:text-slate-950">
     <div id="app" class="flex flex-col min-h-screen">
@@ -865,11 +865,29 @@
                         <!-- 1A. PLAYOFF BRACKET (UPPER & LOWER BRACKET TREE) -->
                         <div v-if="tournamentModalStage === 'PLAYOFF'" class="space-y-8">
                             
-                            <!-- QUALIFIED (Tiket Lolos MPL -> MSL/M) -->
-                            <div v-if="playoffQualifierMatches.length > 0" class="bg-slate-950/60 p-4 sm:p-5 rounded-2xl border border-emerald-500/30 space-y-4">
-                                <div class="flex items-center space-x-2 pb-3 border-b border-slate-800">
-                                    <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
-                                    <h5 class="font-black text-sm uppercase tracking-wider text-emerald-400">Qualified (Perebutan Tiket)</h5>
+                            <!-- MPL NO QUALIFIER BANNER (JIKA FORMAT 4 TIM AWAL & INGIN MENAMBAHKAN QUALIFIER) -->
+                            <div v-if="selectedTournamentData.type === 'MPL' && playoffQualifierMatches.length === 0" 
+                                 class="bg-slate-950/80 border border-emerald-500/40 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                                <div class="flex items-center space-x-2.5 text-slate-300">
+                                    <span class="text-xl">⚡</span>
+                                    <div>
+                                        <h6 class="font-bold text-white text-sm">Babak Kualifikasi (Play-In) Belum Ada</h6>
+                                        <p class="text-slate-400">Turnamen MPL ini menggunakan format 4 tim awal. Anda dapat membuat Babak Kualifikasi otomatis (4 tim tersisa di region {{ selectedTournamentData.region_id }}) dengan 1-klik:</p>
+                                    </div>
+                                </div>
+                                <button @click="generateQualifiers(selectedTournamentData.id)" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-slate-950 font-bold transition shrink-0 shadow-lg">
+                                    + Buat Babak Kualifikasi (2 Match)
+                                </button>
+                            </div>
+
+                            <!-- BABAK KUALIFIKASI (PLAY-IN 4 TIM) -->
+                            <div v-if="playoffQualifierMatches.length > 0" class="bg-slate-950/80 p-4 sm:p-5 rounded-2xl border border-emerald-500/40 space-y-4">
+                                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                                    <div class="flex items-center space-x-2">
+                                        <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+                                        <h5 class="font-black text-sm uppercase tracking-wider text-emerald-400">⚡ Babak Kualifikasi MPL (Play-In 4 Tim)</h5>
+                                    </div>
+                                    <span class="text-xs text-slate-400">Pemenang Q1 & Q2 otomatis lolos ke Upper Bracket (Match 1 & Match 2)</span>
                                 </div>
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div v-for="m in playoffQualifierMatches" :key="m.id"
@@ -878,7 +896,7 @@
                                             <span>{{ m.round_name }}</span>
                                             <div class="flex items-center space-x-1.5">
                                                 <span class="font-bold" :class="m.status === 'COMPLETED' ? 'text-emerald-400' : 'text-amber-400'">{{ m.status }}</span>
-                                                <button @click.stop="openEditMatchModal(m)" title="Edit Skor Pertandingan" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition">✏️</button>
+                                                <button @click.stop="openEditMatchModal(m)" title="Edit Skor & Tim Pertandingan" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition">✏️ Edit Tim & Skor</button>
                                             </div>
                                         </div>
                                         <div v-for="side in [1, 2]" :key="side"
@@ -1260,43 +1278,122 @@
                         <button @click="editingMatch = null" class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300">✕</button>
                     </div>
 
-                    <!-- Scores Form -->
+                    <!-- Match & Teams Form -->
                     <div class="space-y-4">
-                        <!-- Team 1 -->
-                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
-                            <div class="flex items-center space-x-2.5 truncate pr-2">
-                                <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shrink-0">
-                                    <img v-if="editingMatch.team1_logo" :src="'/static/logos/' + editingMatch.team1_logo" class="max-w-full max-h-full object-contain">
-                                    <span v-else class="text-xs font-bold text-slate-500">?</span>
-                                </div>
-                                <div class="truncate">
-                                    <h5 class="text-xs font-bold text-white truncate">{{ editingMatch.team1_name || editingMatch.team1_id }}</h5>
-                                    <span class="text-[10px] text-slate-500 font-mono">{{ editingMatch.team1_id }}</span>
-                                </div>
+                        <!-- Match Meta / Round Title -->
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                                <label class="text-[11px] font-bold text-slate-400 block mb-1">Nama Babak / Match</label>
+                                <input type="text" v-model="matchEditForm.round_name"
+                                       class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono focus:border-cyan-500 focus:outline-none">
                             </div>
-                            <div class="flex items-center space-x-1.5 shrink-0">
-                                <span class="text-xs font-bold text-slate-400">Skor:</span>
-                                <input type="number" min="0" max="10" v-model.number="matchEditForm.score1" @input="onScoreInputAutoWinner"
-                                       class="w-14 bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-2 text-center font-mono font-bold text-base text-cyan-400 focus:border-cyan-500 focus:outline-none">
+                            <div>
+                                <label class="text-[11px] font-bold text-slate-400 block mb-1">Tipe Bracket</label>
+                                <select v-model="matchEditForm.bracket_type"
+                                        class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none">
+                                    <option value="QUALIFIER">QUALIFIER (Babak Kualifikasi)</option>
+                                    <option value="UPPER">UPPER (Upper Bracket)</option>
+                                    <option value="LOWER">LOWER (Lower Bracket)</option>
+                                    <option value="FINAL">FINAL (Grand Final)</option>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Team 2 -->
-                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex items-center justify-between">
-                            <div class="flex items-center space-x-2.5 truncate pr-2">
-                                <div class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shrink-0">
-                                    <img v-if="editingMatch.team2_logo" :src="'/static/logos/' + editingMatch.team2_logo" class="max-w-full max-h-full object-contain">
+                        <!-- Team 1 Selector & Score -->
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-[11px] font-bold text-slate-400">Tim 1 (Kiri / Atas)</label>
+                                <span class="text-[10px] text-cyan-400 font-mono font-bold">{{ matchEditForm.team1_id || 'TBD' }}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shrink-0">
+                                    <img v-if="getTeamObject(matchEditForm.team1_id)?.logo" :src="'/static/logos/' + getTeamObject(matchEditForm.team1_id).logo" class="max-w-full max-h-full object-contain">
                                     <span v-else class="text-xs font-bold text-slate-500">?</span>
                                 </div>
-                                <div class="truncate">
-                                    <h5 class="text-xs font-bold text-white truncate">{{ editingMatch.team2_name || editingMatch.team2_id }}</h5>
-                                    <span class="text-[10px] text-slate-500 font-mono">{{ editingMatch.team2_id }}</span>
+                                <select v-model="matchEditForm.team1_id" @change="onTeamSelectChange"
+                                        class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none">
+                                    <option value="">-- Pilih Tim 1 --</option>
+                                    <optgroup v-if="getRegionalTeamsForCurrentTournament.length > 0" :label="'Tim Regional ' + (selectedTournamentData?.region_id || '')">
+                                        <option v-for="t in getRegionalTeamsForCurrentTournament" :key="'reg1-' + t.id" :value="t.id">
+                                            {{ t.name }} ({{ t.id }})
+                                        </option>
+                                    </optgroup>
+                                    <optgroup label="Placeholder Bagan">
+                                        <option value="Winner Q1">Winner Q1</option>
+                                        <option value="Winner Q2">Winner Q2</option>
+                                        <option value="Winner M1">Winner M1</option>
+                                        <option value="Winner M2">Winner M2</option>
+                                        <option value="Winner M3">Winner M3</option>
+                                        <option value="Winner M4">Winner M4</option>
+                                        <option value="Winner M5">Winner M5</option>
+                                        <option value="Winner M6">Winner M6</option>
+                                        <option value="Winner Upper Final">Winner Upper Final</option>
+                                        <option value="Winner Lower Final">Winner Lower Final</option>
+                                        <option value="Loser M1">Loser M1</option>
+                                        <option value="Loser M2">Loser M2</option>
+                                        <option value="Loser F-Upper">Loser F-Upper</option>
+                                        <option value="TBD">TBD</option>
+                                    </optgroup>
+                                    <optgroup label="Semua 42 Tim Esport">
+                                        <option v-for="t in teams" :key="'all1-' + t.id" :value="t.id">
+                                            {{ t.name }} ({{ t.id }}) [{{ t.region_id }}]
+                                        </option>
+                                    </optgroup>
+                                </select>
+                                <div class="flex items-center space-x-1.5 shrink-0">
+                                    <span class="text-xs font-bold text-slate-400">Skor:</span>
+                                    <input type="number" min="0" max="10" v-model.number="matchEditForm.score1" @input="onScoreInputAutoWinner"
+                                           class="w-14 bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-2 text-center font-mono font-bold text-base text-cyan-400 focus:border-cyan-500 focus:outline-none" placeholder="0">
                                 </div>
                             </div>
-                            <div class="flex items-center space-x-1.5 shrink-0">
-                                <span class="text-xs font-bold text-slate-400">Skor:</span>
-                                <input type="number" min="0" max="10" v-model.number="matchEditForm.score2" @input="onScoreInputAutoWinner"
-                                       class="w-14 bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-2 text-center font-mono font-bold text-base text-cyan-400 focus:border-cyan-500 focus:outline-none">
+                        </div>
+
+                        <!-- Team 2 Selector & Score -->
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label class="text-[11px] font-bold text-slate-400">Tim 2 (Kanan / Bawah)</label>
+                                <span class="text-[10px] text-cyan-400 font-mono font-bold">{{ matchEditForm.team2_id || 'TBD' }}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-9 h-9 rounded-lg bg-slate-900 border border-slate-800 p-1 flex items-center justify-center shrink-0">
+                                    <img v-if="getTeamObject(matchEditForm.team2_id)?.logo" :src="'/static/logos/' + getTeamObject(matchEditForm.team2_id).logo" class="max-w-full max-h-full object-contain">
+                                    <span v-else class="text-xs font-bold text-slate-500">?</span>
+                                </div>
+                                <select v-model="matchEditForm.team2_id" @change="onTeamSelectChange"
+                                        class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none">
+                                    <option value="">-- Pilih Tim 2 --</option>
+                                    <optgroup v-if="getRegionalTeamsForCurrentTournament.length > 0" :label="'Tim Regional ' + (selectedTournamentData?.region_id || '')">
+                                        <option v-for="t in getRegionalTeamsForCurrentTournament" :key="'reg2-' + t.id" :value="t.id">
+                                            {{ t.name }} ({{ t.id }})
+                                        </option>
+                                    </optgroup>
+                                    <optgroup label="Placeholder Bagan">
+                                        <option value="Winner Q1">Winner Q1</option>
+                                        <option value="Winner Q2">Winner Q2</option>
+                                        <option value="Winner M1">Winner M1</option>
+                                        <option value="Winner M2">Winner M2</option>
+                                        <option value="Winner M3">Winner M3</option>
+                                        <option value="Winner M4">Winner M4</option>
+                                        <option value="Winner M5">Winner M5</option>
+                                        <option value="Winner M6">Winner M6</option>
+                                        <option value="Winner Upper Final">Winner Upper Final</option>
+                                        <option value="Winner Lower Final">Winner Lower Final</option>
+                                        <option value="Loser M1">Loser M1</option>
+                                        <option value="Loser M2">Loser M2</option>
+                                        <option value="Loser F-Upper">Loser F-Upper</option>
+                                        <option value="TBD">TBD</option>
+                                    </optgroup>
+                                    <optgroup label="Semua 42 Tim Esport">
+                                        <option v-for="t in teams" :key="'all2-' + t.id" :value="t.id">
+                                            {{ t.name }} ({{ t.id }}) [{{ t.region_id }}]
+                                        </option>
+                                    </optgroup>
+                                </select>
+                                <div class="flex items-center space-x-1.5 shrink-0">
+                                    <span class="text-xs font-bold text-slate-400">Skor:</span>
+                                    <input type="number" min="0" max="10" v-model.number="matchEditForm.score2" @input="onScoreInputAutoWinner"
+                                           class="w-14 bg-slate-900 border border-slate-700 rounded-lg py-1.5 px-2 text-center font-mono font-bold text-base text-cyan-400 focus:border-cyan-500 focus:outline-none" placeholder="0">
+                                </div>
                             </div>
                         </div>
 
@@ -1304,8 +1401,12 @@
                         <div>
                             <label class="text-[11px] font-bold text-slate-300 block mb-1">Tim Pemenang</label>
                             <select v-model="matchEditForm.winner_id" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none">
-                                <option :value="editingMatch.team1_id">{{ editingMatch.team1_name || editingMatch.team1_id }} (Tim 1 Menang)</option>
-                                <option :value="editingMatch.team2_id">{{ editingMatch.team2_name || editingMatch.team2_id }} (Tim 2 Menang)</option>
+                                <option v-if="matchEditForm.team1_id" :value="matchEditForm.team1_id">
+                                    {{ getTeamDisplayName(matchEditForm.team1_id) }} (Tim 1 Menang)
+                                </option>
+                                <option v-if="matchEditForm.team2_id" :value="matchEditForm.team2_id">
+                                    {{ getTeamDisplayName(matchEditForm.team2_id) }} (Tim 2 Menang)
+                                </option>
                                 <option value="">Belum Ditentukan / Seri</option>
                             </select>
                         </div>
@@ -1327,7 +1428,7 @@
                             Batal
                         </button>
                         <button @click="saveMatchScore" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg transition">
-                            💾 Simpan Skor
+                            💾 Simpan Tim & Skor
                         </button>
                     </div>
                 </div>
@@ -1379,6 +1480,6 @@
     </div>
 
     <!-- Main Vue App Script -->
-    <script src="app.js?v=2.2"></script>
+    <script src="app.js?v=2.3"></script>
 </body>
 </html>

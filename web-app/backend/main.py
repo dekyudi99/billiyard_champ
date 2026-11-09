@@ -188,6 +188,8 @@ class MatchUpdateRequest(BaseModel):
     winner_id: Optional[str] = None
     loser_id: Optional[str] = None
     status: Optional[str] = "COMPLETED"
+    round_name: Optional[str] = None
+    bracket_type: Optional[str] = None
 
 @app.post("/api/matches/{match_id}/update")
 def update_match_score(match_id: int, req: MatchUpdateRequest):
@@ -201,6 +203,8 @@ def update_match_score(match_id: int, req: MatchUpdateRequest):
         
     t1_id = req.team1_id if req.team1_id is not None else match_row['team1_id']
     t2_id = req.team2_id if req.team2_id is not None else match_row['team2_id']
+    r_name = req.round_name if req.round_name is not None else match_row['round_name']
+    b_type = req.bracket_type if req.bracket_type is not None else match_row['bracket_type']
     
     # Auto-determine winner if scores are provided and winner_id not explicit
     winner_id = req.winner_id
@@ -222,13 +226,106 @@ def update_match_score(match_id: int, req: MatchUpdateRequest):
             score2 = ?,
             winner_id = ?,
             loser_id = ?,
-            status = ?
+            status = ?,
+            round_name = ?,
+            bracket_type = ?
         WHERE id = ?
-    """, (t1_id, t2_id, req.score1, req.score2, winner_id, loser_id, req.status, match_id))
+    """, (t1_id, t2_id, req.score1, req.score2, winner_id, loser_id, req.status, r_name, b_type, match_id))
+    
+    # Auto-advance winner of Qualified matches into Playoff Match 1 & Match 2 if placeholders exist
+    if winner_id:
+        t_id = match_row['tournament_id']
+        if match_row['round_name'] == 'Qualified 1':
+            c.execute("""
+                UPDATE matches 
+                SET team2_id = ? 
+                WHERE tournament_id = ? AND round_name = 'Match 1' AND (team2_id IS NULL OR team2_id IN ('Winner Q1', 'Winner Q 1', 'TBD', ''))
+            """, (winner_id, t_id))
+        elif match_row['round_name'] == 'Qualified 2':
+            c.execute("""
+                UPDATE matches 
+                SET team2_id = ? 
+                WHERE tournament_id = ? AND round_name = 'Match 2' AND (team2_id IS NULL OR team2_id IN ('Winner Q2', 'Winner Q 2', 'TBD', ''))
+            """, (winner_id, t_id))
     
     conn.commit()
     conn.close()
-    return {"message": "Skor pertandingan berhasil diperbarui!", "match_id": match_id, "winner_id": winner_id}
+    return {"message": "Pertandingan dan tim berhasil diperbarui!", "match_id": match_id, "team1_id": t1_id, "team2_id": t2_id, "winner_id": winner_id}
+
+class CreateMatchRequest(BaseModel):
+    round_name: str
+    stage: str = "QUALIFIED" # QUALIFIED or PLAYOFF
+    bracket_type: str = "QUALIFIER" # QUALIFIER, UPPER, LOWER, FINAL
+    match_order: int = 1
+    team1_id: Optional[str] = None
+    team2_id: Optional[str] = None
+    score1: Optional[int] = None
+    score2: Optional[int] = None
+    status: str = "PENDING"
+
+@app.post("/api/tournaments/{tournament_id}/matches")
+def add_tournament_match(tournament_id: str, req: CreateMatchRequest):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT id FROM tournaments WHERE id=?", (tournament_id,))
+    if not c.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="Turnamen tidak ditemukan")
+        
+    c.execute("""
+        INSERT INTO matches (tournament_id, stage, round_name, bracket_type, match_order, team1_id, team2_id, score1, score2, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (tournament_id, req.stage, req.round_name, req.bracket_type, req.match_order, req.team1_id, req.team2_id, req.score1, req.score2, req.status))
+    new_id = c.lastrowid
+    conn.commit()
+    conn.close()
+    return {"message": "Pertandingan baru berhasil ditambahkan!", "match_id": new_id}
+
+@app.post("/api/tournaments/{tournament_id}/generate-mpl-qualifiers")
+def generate_mpl_qualifiers(tournament_id: str):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT * FROM tournaments WHERE id=?", (tournament_id,))
+    t = c.fetchone()
+    if not t:
+        conn.close()
+        raise HTTPException(status_code=404, detail="Turnamen tidak ditemukan")
+        
+    # Check if qualifiers already exist
+    c.execute("""
+        SELECT COUNT(*) FROM matches 
+        WHERE tournament_id = ? AND (bracket_type = 'QUALIFIER' OR stage = 'QUALIFIED')
+    """, (tournament_id,))
+    if c.fetchone()[0] > 0:
+        conn.close()
+        raise HTTPException(status_code=400, detail="Babak kualifikasi sudah ada pada turnamen ini!")
+        
+    region_id = t['region_id']
+    c.execute("SELECT id FROM teams WHERE region_id = ? ORDER BY rank ASC, points DESC", (region_id,))
+    reg_teams = [row[0] for row in c.fetchall()]
+    
+    t3 = reg_teams[2] if len(reg_teams) > 2 else "TBD"
+    t4 = reg_teams[3] if len(reg_teams) > 3 else "TBD"
+    t5 = reg_teams[4] if len(reg_teams) > 4 else "TBD"
+    t6 = reg_teams[5] if len(reg_teams) > 5 else "TBD"
+    
+    # Shift existing matches order by 2
+    c.execute("UPDATE matches SET match_order = match_order + 2 WHERE tournament_id = ?", (tournament_id,))
+    
+    # Insert Qualified 1 and Qualified 2
+    c.execute("""
+        INSERT INTO matches (tournament_id, stage, round_name, bracket_type, match_order, team1_id, team2_id, status)
+        VALUES (?, 'QUALIFIED', 'Qualified 1', 'QUALIFIER', 1, ?, ?, 'PENDING')
+    """, (tournament_id, t3, t6))
+    
+    c.execute("""
+        INSERT INTO matches (tournament_id, stage, round_name, bracket_type, match_order, team1_id, team2_id, status)
+        VALUES (?, 'QUALIFIED', 'Qualified 2', 'QUALIFIER', 2, ?, ?, 'PENDING')
+    """, (tournament_id, t4, t5))
+    
+    conn.commit()
+    conn.close()
+    return {"message": f"Babak kualifikasi (Qualified 1 & 2) berhasil dibuat untuk {tournament_id}!"}
 
 class TournamentFinishRequest(BaseModel):
     winner_id: str
@@ -534,7 +631,7 @@ def start_new_season():
         c.execute("INSERT OR REPLACE INTO system_settings (key, value) VALUES ('defending_m_champ_1st_region', ?)", (w_reg,))
         c.execute("INSERT OR REPLACE INTO system_settings (key, value) VALUES ('defending_m_champ_2nd_region', ?)", (ru_reg,))
         
-    # Create the 7 MPL tournaments for new season
+    # Create the 7 MPL tournaments for new season with full 8-match bracket (2 Qualifiers + 6 Playoff)
     regions = ['AM', 'ID', 'MEA', 'MY', 'PEL', 'PH', 'SEA']
     for r in regions:
         t_id = f"MPL {r} S{new_season}"
@@ -543,9 +640,34 @@ def start_new_season():
             VALUES (?, ?, 'MPL', ?, ?, 1, 'ONGOING')
         """, (t_id, t_id, r, new_season))
         
+        c.execute("SELECT id FROM teams WHERE region_id = ? ORDER BY rank ASC, points DESC", (r,))
+        r_teams = [row[0] for row in c.fetchall()]
+        t1 = r_teams[0] if len(r_teams) > 0 else "Team 1"
+        t2 = r_teams[1] if len(r_teams) > 1 else "Team 2"
+        t3 = r_teams[2] if len(r_teams) > 2 else "Team 3"
+        t4 = r_teams[3] if len(r_teams) > 3 else "Team 4"
+        t5 = r_teams[4] if len(r_teams) > 4 else "Team 5"
+        t6 = r_teams[5] if len(r_teams) > 5 else "Team 6"
+        
+        mpl_matches = [
+            (t_id, "QUALIFIED", "Qualified 1", "QUALIFIER", 1, t3, t6, None, None, None, None, "PENDING"),
+            (t_id, "QUALIFIED", "Qualified 2", "QUALIFIER", 2, t4, t5, None, None, None, None, "PENDING"),
+            (t_id, "PLAYOFF", "Match 1", "UPPER", 3, t1, "Winner Q1", None, None, None, None, "PENDING"),
+            (t_id, "PLAYOFF", "Match 2", "UPPER", 4, t2, "Winner Q2", None, None, None, None, "PENDING"),
+            (t_id, "PLAYOFF", "Final Upper", "UPPER", 5, "Winner M1", "Winner M2", None, None, None, None, "PENDING"),
+            (t_id, "PLAYOFF", "Match 4", "LOWER", 6, "Loser M1", "Loser M2", None, None, None, None, "PENDING"),
+            (t_id, "PLAYOFF", "Final Lower", "LOWER", 7, "Loser F-Upper", "Winner M4", None, None, None, None, "PENDING"),
+            (t_id, "PLAYOFF", "Grand Final", "FINAL", 8, "Winner F-Upper", "Winner F-Lower", None, None, None, None, "PENDING"),
+        ]
+        for m in mpl_matches:
+            c.execute("""
+                INSERT INTO matches (tournament_id, stage, round_name, bracket_type, match_order, team1_id, team2_id, score1, score2, winner_id, loser_id, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, m)
+        
     conn.commit()
     conn.close()
-    return {"message": f"Season {new_season} resmi dimulai! 7 liga regional MPL baru telah dibuat."}
+    return {"message": f"Season {new_season} resmi dimulai! 7 liga regional MPL baru telah dibuat dengan babak kualifikasi & playoff lengkap."}
 
 # Simulation helpers
 @app.post("/api/simulate/sea-s4")
