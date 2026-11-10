@@ -48,4 +48,17 @@ button, select, a {
     table {
         min-width: 620px;
     }
+    select, input {
+        font-size: 13px;
+    }
+}
+
+/* Touch-friendly Horizontal Scrolling & Inertia */
+.touch-pan-x {
+    touch-action: pan-x pan-y;
+    -webkit-overflow-scrolling: touch;
+}
+
+.overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
 }

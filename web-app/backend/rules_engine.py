@@ -11,7 +11,7 @@ TROPHY_DEFINITIONS = {
     'MSL': {
         1: {'points': 1250, 'image': 'trofi_msl.png', 'title': 'Juara 1 MSL Championship', 'field': 'trofi_msl_1st'},
         2: {'points': 750, 'image': 'runner_up_msl.png', 'title': 'Runner-up MSL Championship', 'field': 'trofi_msl_2nd'},
-        3: {'points': 500, 'image': '3rd_place_m_championship.png', 'title': 'Peringkat 3 MSL Championship', 'field': 'trofi_msl_3rd'}
+        3: {'points': 500, 'image': 'msl_3rd_medal.png', 'title': 'Peringkat 3 MSL Championship', 'field': 'trofi_msl_3rd'}
     },
     'MPL': {
         1: {'points': 1000, 'image': 'trofi_mpl.png', 'title': 'Juara 1 MPL Regional', 'field': 'trofi_mpl_1st'},
