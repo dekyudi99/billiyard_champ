@@ -1,3 +1,8 @@
+/* Prevent flash of uncompiled Vue template */
+[v-cloak] {
+    display: none !important;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;

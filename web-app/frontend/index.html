@@ -9,10 +9,10 @@
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=2.4">
+    <link rel="stylesheet" href="style.css?v=2.5">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-cyan-500 selection:text-slate-950">
-    <div id="app" class="flex flex-col min-h-screen">
+    <div id="app" v-cloak class="flex flex-col min-h-screen">
         
         <!-- Header / Navbar -->
         <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
@@ -1457,8 +1457,6 @@
                     </div>
                 </div>
             </div>
-                </div>
-            </div>
 
             <!-- 9. TEAM TROPHY CABINET MODAL -->
             <div v-if="selectedTeamForCabinet" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
@@ -1506,6 +1504,6 @@
     </div>
 
     <!-- Main Vue App Script -->
-    <script src="app.js?v=2.4"></script>
+    <script src="app.js?v=2.5"></script>
 </body>
 </html>
