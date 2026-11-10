@@ -11,7 +11,7 @@ createApp({
             { id: 'base-team', name: 'Base Team', shortName: 'Base Team', icon: '👥' },
             { id: 'base-region', name: 'Base Region', shortName: 'Base Region', icon: '🌍' },
             { id: 'workflow', name: 'Alur Season & Turnamen', shortName: 'Alur Season', icon: '🔄' },
-            { id: 'trophies-history', name: 'Riwayat Trofi', shortName: 'Riwayat Trofi', icon: '🏆' },
+            { id: 'trophies-history', name: 'Riwayat Trofi', shortName: 'Trofi', icon: '🏆' },
             { id: 'tournaments', name: 'Turnamen & Bagan', shortName: 'Turnamen', icon: '📊' },
         ];
 
@@ -341,30 +341,7 @@ createApp({
             }
         };
 
-        // Simulator actions
-        const simulateSeaS4 = async () => {
-            try {
-                const res = await fetch('/api/simulate/sea-s4?winner_id=YG&runner_up_id=CFU&third_place_id=PRX&fourth_place_id=VPE', {
-                    method: 'POST'
-                });
-                const data = await res.json();
-                alert(data.message);
-                await refreshAll();
-            } catch (e) {
-                alert("Error simulating SEA S4: " + e);
-            }
-        };
 
-        const resetSeaS4 = async () => {
-            try {
-                const res = await fetch('/api/reset-sea-s4', { method: 'POST' });
-                const data = await res.json();
-                alert(data.message);
-                await refreshAll();
-            } catch (e) {
-                alert("Error resetting SEA S4: " + e);
-            }
-        };
 
         const saveSettings = async () => {
             try {
@@ -610,8 +587,6 @@ createApp({
             createMTournament,
             startNewSeason,
             fetchWorkflowStatus,
-            simulateSeaS4,
-            resetSeaS4,
             saveSettings,
             refreshAll
         };

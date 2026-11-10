@@ -9,34 +9,34 @@
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=2.5">
+    <link rel="stylesheet" href="style.css?v=2.6">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-cyan-500 selection:text-slate-950">
     <div id="app" v-cloak class="flex flex-col min-h-screen">
         
         <!-- Header / Navbar -->
         <header class="border-b border-slate-800/80 bg-slate-900/60 backdrop-blur-md sticky top-0 z-50">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 font-black text-xl tracking-wider text-slate-950">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between min-h-[4rem] py-2">
+                <div class="flex items-center space-x-3 shrink-0">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 font-black text-xl tracking-wider text-slate-950 shrink-0">
                         🎱
                     </div>
-                    <div>
-                        <h1 class="font-extrabold text-lg sm:text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent">
+                    <div class="shrink-0">
+                        <h1 class="font-extrabold text-base sm:text-lg lg:text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-cyan-400 bg-clip-text text-transparent whitespace-nowrap leading-tight">
                             BILLIARD CHAMPIONSHIP
                         </h1>
-                        <p class="text-xs text-slate-400 font-medium">World Esports League & Ranking System</p>
+                        <p class="text-[11px] sm:text-xs text-slate-400 font-medium whitespace-nowrap leading-tight mt-0.5">World Esports League &amp; Ranking System</p>
                     </div>
                 </div>
 
                 <!-- Navigation Tabs (Scalable for Tablet & Desktop) -->
-                <nav class="hidden md:flex items-center space-x-1 lg:space-x-1.5">
+                <nav class="hidden md:flex items-center space-x-1 lg:space-x-1.5 shrink-0">
                     <button v-for="tab in tabs" :key="tab.id" @click="currentTab = tab.id"
                             :class="[
                                 currentTab === tab.id 
                                     ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/50 shadow-sm' 
                                     : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/40 border-transparent',
-                                'px-2 lg:px-3 py-1.5 lg:py-2 text-xs lg:text-sm font-semibold rounded-lg border transition-all flex items-center space-x-1 lg:space-x-1.5 whitespace-nowrap'
+                                'px-2 lg:px-3 py-1.5 text-xs lg:text-sm font-semibold rounded-lg border transition-all flex items-center space-x-1 lg:space-x-1.5 whitespace-nowrap'
                             ]">
                         <span class="text-sm lg:text-base">{{ tab.icon }}</span>
                         <span class="hidden xl:inline">{{ tab.name }}</span>
@@ -76,46 +76,39 @@
                 <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-slate-800 p-6 md:p-8 shadow-2xl">
                     <div class="relative z-10 max-w-3xl">
                         <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 mb-3">
-                            🏆 Jalur Kualifikasi Otomatis Musim 4
+                            🏆 Jalur Kualifikasi Otomatis Musim {{ roadData.season || stats.active_season || 4 }}
                         </span>
                         <h2 class="text-2xl sm:text-3xl font-black tracking-tight text-white mb-2">
                             ROAD TO WORLD CHAMPION
                         </h2>
                         <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
-                            Sistem secara otomatis mengalokasikan slot tiket turnamen dunia <strong>M4 Championship</strong> (16 Tim) dan <strong>MSL Championship Season 4</strong> (8 Tim) berdasarkan hasil klasemen liga regional MPL.
+                            Sistem secara otomatis mengalokasikan slot tiket turnamen dunia <strong>{{ roadData.m_championship?.name || 'M-Championship' }}</strong> ({{ roadData.m_championship?.slots?.length || 16 }} Tim) dan <strong>{{ roadData.msl_championship?.name || 'MSL Championship' }}</strong> ({{ roadData.msl_championship?.slots?.length || 8 }} Tim) berdasarkan hasil klasemen liga regional MPL.
                         </p>
                     </div>
 
-                    <!-- Simulator & Action Controls -->
-                    <div class="mt-6 pt-6 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-4">
-                        <div class="flex items-center space-x-3">
-                            <span class="text-xs uppercase tracking-wider font-bold text-slate-400">Simulator SEA S4:</span>
-                            <button @click="simulateSeaS4" class="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-emerald-500/20 transition-all flex items-center space-x-2">
-                                <span>⚡ Simulasikan MPL SEA S4</span>
-                            </button>
-                            <button @click="resetSeaS4" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs border border-slate-700 transition">
-                                Reset
-                            </button>
-                        </div>
-                        
-                        <div class="text-xs text-slate-400 bg-slate-950/80 px-3 py-2 rounded-xl border border-slate-800">
-                            🛡️ <strong>Aturan Slot Juara M3:</strong> Juara 1 (T1) $\rightarrow$ PEL #3 (DRX). Juara 2 (IHC) $\rightarrow$ PEL #5 (DK) karena Juara 1 & 2 sama-sama PEL!
-                        </div>
+                    <!-- Clean Defending Champion Badge (Dynamic, No Math Code) -->
+                    <div v-if="roadData.settings?.defending_m_champ_1st_region" class="mt-6 pt-5 border-t border-slate-800/80 flex items-center space-x-2 text-xs text-cyan-300 bg-cyan-950/30 border border-cyan-800/40 px-4 py-2.5 rounded-xl">
+                        <span class="text-base">👑</span>
+                        <span><strong>Region Juara Bertahan Dunia:</strong> Region <span class="font-bold text-white">{{ roadData.settings.defending_m_champ_1st_region }}</span> mendapatkan kuota tambahan langsung ke M-Championship (Slot #15).</span>
                     </div>
                 </div>
 
-                <!-- Bagian 1: ROAD TO M4 CHAMPIONSHIP (16 Slot) -->
+                <!-- Bagian 1: ROAD TO M-CHAMPIONSHIP (16 Slot) -->
                 <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
                     <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
                         <div class="flex items-center space-x-3">
-                            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">M4</div>
+                            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                                {{ 'M' + (roadData.season || '') }}
+                            </div>
                             <div>
-                                <h3 class="text-xl font-bold text-white tracking-wide">ROAD TO M4 CHAMPIONSHIP</h3>
-                                <p class="text-xs text-slate-400">Total 16 Tim: 14 Kuota Regional MPL + 1 Juara 1 M3 Reward (PEL #3: DRX) + 1 Juara MSL S4</p>
+                                <h3 class="text-xl font-bold text-white tracking-wide uppercase">
+                                    {{ roadData.m_championship?.name || 'ROAD TO WORLD CHAMPIONSHIP' }}
+                                </h3>
+                                <p class="text-xs text-slate-400">Total {{ roadData.m_championship?.slots?.length || 16 }} Tim: 14 Kuota Regional MPL + 1 Juara Bertahan Dunia + 1 Juara MSL</p>
                             </div>
                         </div>
                         <span class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-cyan-400 border border-slate-700">
-                            {{ confirmedM4Count }} / 16 Slot Terisi
+                            {{ confirmedM4Count }} / {{ roadData.m_championship?.slots?.length || 16 }} Slot Terisi
                         </span>
                     </div>
 
@@ -162,18 +155,20 @@
                     </div>
                 </div>
 
-                <!-- Bagian 2: ROAD TO MSL CHAMPIONSHIP S4 (8 Slot) -->
+                <!-- Bagian 2: ROAD TO MSL CHAMPIONSHIP (8 Slot) -->
                 <div class="bg-slate-900/40 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
                     <div class="flex items-center justify-between mb-6 pb-4 border-b border-slate-800">
                         <div class="flex items-center space-x-3">
                             <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold">MSL</div>
                             <div>
-                                <h3 class="text-xl font-bold text-white tracking-wide">ROAD TO MSL CHAMPIONSHIP S4</h3>
-                                <p class="text-xs text-slate-400">Total 8 Tim: Peringkat 3 MPL Regional + Peringkat 4 Juara 1 M3 (IHC) + Slot Ekstra Juara 2 M3 (PEL #5: DK)</p>
+                                <h3 class="text-xl font-bold text-white tracking-wide uppercase">
+                                    {{ roadData.msl_championship?.name || 'ROAD TO MSL CHAMPIONSHIP' }}
+                                </h3>
+                                <p class="text-xs text-slate-400">Total {{ roadData.msl_championship?.slots?.length || 8 }} Tim: Peringkat 3 MPL Regional + Slot Juara Bertahan Dunia</p>
                             </div>
                         </div>
                         <span class="text-xs font-semibold px-3 py-1 rounded-full bg-slate-800 text-purple-400 border border-slate-700">
-                            {{ confirmedMslCount }} / 8 Slot Terisi
+                            {{ confirmedMslCount }} / {{ roadData.msl_championship?.slots?.length || 8 }} Slot Terisi
                         </span>
                     </div>
 
@@ -1504,6 +1499,6 @@
     </div>
 
     <!-- Main Vue App Script -->
-    <script src="app.js?v=2.5"></script>
+    <script src="app.js?v=2.6"></script>
 </body>
 </html>

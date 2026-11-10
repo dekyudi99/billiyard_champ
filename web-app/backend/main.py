@@ -426,6 +426,11 @@ def get_road_to_world(season: Optional[int] = None):
     m_target = f"M{season}"
     msl_target = f"MSL_S{season}"
 
+    # DRY: Pastikan slot untuk season ini terisi / ter-generate otomatis jika belum ada
+    c.execute("SELECT COUNT(*) FROM qualification_slots WHERE target_tournament = ?", (m_target,))
+    if c.fetchone()[0] == 0:
+        rules_engine.update_road_to_world_slots(conn, current_season=season)
+
     c.execute("""
         SELECT qs.*, t.name as team_name, t.logo as team_logo, r.name as region_name
         FROM qualification_slots qs
@@ -665,49 +670,12 @@ def start_new_season():
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, m)
         
-    conn.commit()
-    conn.close()
-    return {"message": f"Season {new_season} resmi dimulai! 7 liga regional MPL baru telah dibuat dengan babak kualifikasi & playoff lengkap."}
-
-# Simulation helpers
-@app.post("/api/simulate/sea-s4")
-def simulate_sea_s4(winner_id: str = "YG", runner_up_id: str = "CFU", third_place_id: str = "PRX", fourth_place_id: str = "VPE"):
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute("""
-        UPDATE tournaments
-        SET status = 'COMPLETED',
-            winner_id = ?,
-            runner_up_id = ?,
-            third_place_id = ?,
-            fourth_place_id = ?
-        WHERE id = 'MPL SEA S4'
-    """, (winner_id, runner_up_id, third_place_id, fourth_place_id))
+    # Reset & inisialisasi slot Road to World untuk season baru
+    rules_engine.update_road_to_world_slots(conn, current_season=new_season)
     
     conn.commit()
-    recalculate_all_time_standings(conn)
-    update_road_to_world_slots(conn, current_season=4)
     conn.close()
-    return {"message": f"MPL SEA S4 selesai: Juara={winner_id}, Runner-up={runner_up_id}, Peringkat 3={third_place_id}. Slot kualifikasi otomatis terisi dan Base Team/Region ter-update!"}
-
-@app.post("/api/reset-sea-s4")
-def reset_sea_s4():
-    conn = get_connection()
-    c = conn.cursor()
-    c.execute("""
-        UPDATE tournaments
-        SET status = 'ONGOING',
-            winner_id = NULL,
-            runner_up_id = NULL,
-            third_place_id = NULL,
-            fourth_place_id = NULL
-        WHERE id = 'MPL SEA S4'
-    """)
-    conn.commit()
-    recalculate_all_time_standings(conn)
-    update_road_to_world_slots(conn, current_season=4)
-    conn.close()
-    return {"message": "MPL SEA S4 dikembalikan ke status belum selesai."}
+    return {"message": f"Season {new_season} resmi dimulai! 7 liga regional MPL baru telah dibuat dan Road to World telah di-reset untuk Musim {new_season}."}
 
 # Serve frontend
 @app.get("/")
