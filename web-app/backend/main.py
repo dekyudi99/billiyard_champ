@@ -521,12 +521,6 @@ def create_msl_tournament(season_num: int):
         conn.close()
         raise HTTPException(status_code=400, detail=f"{msl_id} sudah ada dalam database!")
         
-    # Create tournament
-    c.execute("""
-        INSERT INTO tournaments (id, name, type, region_id, season, phase, status)
-        VALUES (?, ?, 'MSL', 'GLOBAL', ?, 2, 'ONGOING')
-    """, (msl_id, msl_id, season_num))
-    
     # Pull the 8 qualified teams from qualification_slots
     c.execute("SELECT team_id FROM qualification_slots WHERE target_tournament=? ORDER BY slot_number ASC", (f"MSL_S{season_num}",))
     q_teams = [row['team_id'] for row in c.fetchall() if row['team_id']]
@@ -536,36 +530,41 @@ def create_msl_tournament(season_num: int):
         raise HTTPException(
             status_code=400,
             detail=f"Baru {len(q_teams)}/8 slot MSL S{season_num} terisi. Lengkapi dulu slot yang masih kosong "
-                   f"(mis. tim slot ekstra Peringkat 5 di tab Road to World)."
+                   f"(mis. selesaikan seluruh MPL atau tentukan tim slot ekstra di tab Road to World)."
         )
 
-    # Create tournament
+    # Create tournament (single insert)
     c.execute("""
         INSERT INTO tournaments (id, name, type, region_id, season, phase, status)
         VALUES (?, ?, 'MSL', 'GLOBAL', ?, 2, 'ONGOING')
     """, (msl_id, msl_id, season_num))
     
-    # Create initial playoff matches
-    if len(q_teams) >= 8:
-        matches = [
-            (msl_id, "PLAYOFF", "Match 1", "UPPER", 1, q_teams[0], q_teams[1], None, None, None, None, "PENDING"),
-            (msl_id, "PLAYOFF", "Match 2", "UPPER", 2, q_teams[2], q_teams[3], None, None, None, None, "PENDING"),
-            (msl_id, "PLAYOFF", "Match 3", "UPPER", 3, q_teams[4], q_teams[5], None, None, None, None, "PENDING"),
-            (msl_id, "PLAYOFF", "Match 4", "UPPER", 4, q_teams[6], q_teams[7], None, None, None, None, "PENDING"),
-            (msl_id, "PLAYOFF", "Match 5", "UPPER", 5, "Winner M1", "Winner M2", None, None, None, None, "PENDING"),
-            (msl_id, "PLAYOFF", "Match 6", "UPPER", 6, "Winner M3", "Winner M4", None, None, None, None, "PENDING"),
-            (msl_id, "PLAYOFF", "Upper Final", "UPPER", 7, "Winner M5", "Winner M6", None, None, None, None, "PENDING"),
-            (msl_id, "PLAYOFF", "Grand Final", "FINAL", 8, "Winner Upper Final", "Winner Lower Final", None, None, None, None, "PENDING"),
-        ]
-        for m in matches:
-            c.execute("""
-                INSERT INTO matches (tournament_id, stage, round_name, bracket_type, match_order, team1_id, team2_id, score1, score2, winner_id, loser_id, status)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, m)
-            
+    # Create complete 14-match double elimination playoff bracket
+    matches = [
+        (msl_id, "PLAYOFF", "Match 1", "UPPER", 1, q_teams[0], q_teams[1], None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Match 2", "UPPER", 2, q_teams[2], q_teams[3], None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Match 3", "UPPER", 3, q_teams[4], q_teams[5], None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Match 4", "UPPER", 4, q_teams[6], q_teams[7], None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Match 5", "UPPER", 5, "Winner M1", "Winner M2", None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Match 6", "UPPER", 6, "Winner M3", "Winner M4", None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Upper Final", "UPPER", 7, "Winner M5", "Winner M6", None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Match 7", "LOWER", 8, "Loser M1", "Loser M2", None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Match 8", "LOWER", 9, "Loser M3", "Loser M4", None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Match 9", "LOWER", 10, "Loser M6", "Winner M7", None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Match 10", "LOWER", 11, "Loser M5", "Winner M8", None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Lower Semifinal", "LOWER", 12, "Winner M9", "Winner M10", None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Lower Final", "LOWER", 13, "Loser Upper Final", "Winner Lower Semifinal", None, None, None, None, "PENDING"),
+        (msl_id, "PLAYOFF", "Grand Final", "FINAL", 14, "Winner Upper Final", "Winner Lower Final", None, None, None, None, "PENDING"),
+    ]
+    for m in matches:
+        c.execute("""
+            INSERT INTO matches (tournament_id, stage, round_name, bracket_type, match_order, team1_id, team2_id, score1, score2, winner_id, loser_id, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, m)
+        
     conn.commit()
     conn.close()
-    return {"message": f"Turnamen {msl_id} berhasil dibuat dan 8 tim teratas otomatis masuk bagan!"}
+    return {"message": f"Turnamen {msl_id} berhasil dibuat dan 8 tim teratas otomatis masuk bagan lengkap!"}
 
 @app.post("/api/season/{season_num}/create-m-championship")
 def create_m_championship_tournament(season_num: int):
@@ -595,9 +594,53 @@ def create_m_championship_tournament(season_num: int):
         VALUES (?, ?, 'M_SERIES', 'GLOBAL', ?, 3, 'ONGOING')
     """, (m_id, f"M{season_num} World Championship", season_num))
     
+    # Pull 16 qualified teams
+    c.execute("SELECT team_id FROM qualification_slots WHERE target_tournament=? ORDER BY slot_number ASC", (m_id,))
+    q_teams = [row['team_id'] for row in c.fetchall() if row['team_id']]
+    
+    # Create Swiss Stage Round 1 matches if 16 teams ready
+    if len(q_teams) >= 16:
+        swiss_r1 = [
+            (m_id, "SWISS", "Round 1", "Pool 0-0 (BO1)", 1, q_teams[0], q_teams[1], None, None, None, None, "PENDING"),
+            (m_id, "SWISS", "Round 1", "Pool 0-0 (BO1)", 2, q_teams[2], q_teams[3], None, None, None, None, "PENDING"),
+            (m_id, "SWISS", "Round 1", "Pool 0-0 (BO1)", 3, q_teams[4], q_teams[5], None, None, None, None, "PENDING"),
+            (m_id, "SWISS", "Round 1", "Pool 0-0 (BO1)", 4, q_teams[6], q_teams[7], None, None, None, None, "PENDING"),
+            (m_id, "SWISS", "Round 1", "Pool 0-0 (BO1)", 5, q_teams[8], q_teams[9], None, None, None, None, "PENDING"),
+            (m_id, "SWISS", "Round 1", "Pool 0-0 (BO1)", 6, q_teams[10], q_teams[11], None, None, None, None, "PENDING"),
+            (m_id, "SWISS", "Round 1", "Pool 0-0 (BO1)", 7, q_teams[12], q_teams[13], None, None, None, None, "PENDING"),
+            (m_id, "SWISS", "Round 1", "Pool 0-0 (BO1)", 8, q_teams[14], q_teams[15], None, None, None, None, "PENDING"),
+        ]
+        for m in swiss_r1:
+            c.execute("""
+                INSERT INTO matches (tournament_id, stage, round_name, bracket_type, match_order, team1_id, team2_id, score1, score2, winner_id, loser_id, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, m)
+            
+        playoff_m = [
+            (m_id, "PLAYOFF", "Match 1", "UPPER", 1, "Swiss 1st", "Swiss 8th", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Match 2", "UPPER", 2, "Swiss 4th", "Swiss 5th", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Match 3", "UPPER", 3, "Swiss 2nd", "Swiss 7th", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Match 4", "UPPER", 4, "Swiss 3rd", "Swiss 6th", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Match 5", "UPPER", 5, "Winner M1", "Winner M2", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Match 6", "UPPER", 6, "Winner M3", "Winner M4", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Upper Final", "UPPER", 7, "Winner M5", "Winner M6", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Match 7", "LOWER", 8, "Loser M1", "Loser M2", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Match 8", "LOWER", 9, "Loser M3", "Loser M4", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Match 9", "LOWER", 10, "Loser M6", "Winner M7", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Match 10", "LOWER", 11, "Loser M5", "Winner M8", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Lower Semifinal", "LOWER", 12, "Winner M9", "Winner M10", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Lower Final", "LOWER", 13, "Loser Upper Final", "Winner Lower Semifinal", None, None, None, None, "PENDING"),
+            (m_id, "PLAYOFF", "Grand Final", "FINAL", 14, "Winner Upper Final", "Winner Lower Final", None, None, None, None, "PENDING"),
+        ]
+        for m in playoff_m:
+            c.execute("""
+                INSERT INTO matches (tournament_id, stage, round_name, bracket_type, match_order, team1_id, team2_id, score1, score2, winner_id, loser_id, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, m)
+
     conn.commit()
     conn.close()
-    return {"message": f"Turnamen M{season_num} World Championship berhasil dibuat dan siap dimainkan!"}
+    return {"message": f"Turnamen M{season_num} World Championship berhasil dibuat dengan Swiss Stage & Playoff!"}
 
 @app.post("/api/season/start-new")
 def start_new_season():

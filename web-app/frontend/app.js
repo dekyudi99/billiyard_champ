@@ -302,12 +302,26 @@ createApp({
             }
         };
 
+        // Helper for safe API call response parsing
+        const parseApiResponse = async (res) => {
+            let data = null;
+            try {
+                data = await res.json();
+            } catch (_) {
+                const text = await res.text();
+                throw new Error(text || `HTTP ${res.status}: Terjadi kesalahan pada server`);
+            }
+            if (!res.ok) {
+                throw new Error(data.detail || data.message || `HTTP ${res.status}: Terjadi kesalahan`);
+            }
+            return data;
+        };
+
         // Workflow Action Handlers
         const createMslTournament = async () => {
             try {
                 const res = await fetch(`/api/season/${workflowData.value.season}/create-msl`, { method: 'POST' });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || "Gagal membuat MSL");
+                const data = await parseApiResponse(res);
                 alert(data.message);
                 await refreshAll();
             } catch (e) {
@@ -318,8 +332,7 @@ createApp({
         const createMTournament = async () => {
             try {
                 const res = await fetch(`/api/season/${workflowData.value.season}/create-m-championship`, { method: 'POST' });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || "Gagal membuat M-Championship");
+                const data = await parseApiResponse(res);
                 alert(data.message);
                 await refreshAll();
             } catch (e) {
@@ -331,8 +344,7 @@ createApp({
             if (!confirm(`Apakah Anda yakin ingin memulai Season ${workflowData.value.season + 1}? Seluruh turnamen MPL untuk season baru akan otomatis dibuat.`)) return;
             try {
                 const res = await fetch('/api/season/start-new', { method: 'POST' });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || "Gagal memulai season baru");
+                const data = await parseApiResponse(res);
                 alert(data.message);
                 selectedSeasonWorkflow.value = workflowData.value.season + 1;
                 await refreshAll();
