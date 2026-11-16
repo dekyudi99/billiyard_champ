@@ -93,7 +93,7 @@ def run_seed():
         "MPL AM S4": ("TL", "FUR", "C9", "A7"),
         
         "MPL ID S1": ("AE", "ONIC", "EVOS", "RRQ"),
-        "MPL ID S2": ("AE", "ONIC", "EVOS", "RRQ"),
+        "MPL ID S2": ("AE", "ONIC", "RRQ", "EVOS"),
         "MPL ID S3": ("AE", "ONIC", "EVOS", "RRQ"),
         "MPL ID S4": ("EVOS", "RRQ", "ONIC", "AE"),
         

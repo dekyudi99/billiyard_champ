@@ -42,7 +42,8 @@ createApp({
             status: 'COMPLETED'
         });
 
-        // Finish Tournament Form
+        // Finish Tournament Form & Podium Edit State
+        const showPodiumEdit = ref(false);
         const finishForm = ref({
             winner_id: '',
             runner_up_id: '',
@@ -160,9 +161,10 @@ createApp({
         const selectTournament = async (tournamentId) => {
             try {
                 const res = await fetch(`/api/tournaments/${tournamentId}`);
-                selectedTournamentData.value = await res.json();
+                selectedTournamentData.value = await parseApiResponse(res);
                 tournamentModalStage.value = 'PLAYOFF';
                 tournamentModalView.value = 'bracket';
+                showPodiumEdit.value = (selectedTournamentData.value.status === 'ONGOING');
                 finishForm.value = {
                     winner_id: selectedTournamentData.value.winner_id || '',
                     runner_up_id: selectedTournamentData.value.runner_up_id || '',
@@ -190,9 +192,9 @@ createApp({
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(finishForm.value)
                 });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || "Gagal menyimpan hasil turnamen");
+                const data = await parseApiResponse(res);
                 alert(data.message);
+                showPodiumEdit.value = false;
                 await refreshAll();
                 await selectTournament(selectedTournamentData.value.id);
             } catch (e) {
@@ -591,6 +593,7 @@ createApp({
             generateQualifiers,
             saveMatchScore,
             finishForm,
+            showPodiumEdit,
             getAvailableTeamsForTournament,
             submitFinishTournament,
             selectTournament,
