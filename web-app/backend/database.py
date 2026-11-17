@@ -54,6 +54,9 @@ def init_db():
             col_type = "TEXT DEFAULT '[]'" if col == 'trophies_detail' else "INTEGER DEFAULT 0"
             c.execute(f"ALTER TABLE teams ADD COLUMN {col} {col_type}")
     
+    # Data migration: Pastikan nama tim AP Bren tidak memiliki 'Falcon'
+    c.execute("UPDATE teams SET name = 'AP Bren' WHERE id = 'APBR' AND name LIKE '%Falcon%'")
+    
     # Seasons Table (Manages workflow & sequence)
     c.execute('''
     CREATE TABLE IF NOT EXISTS seasons (
