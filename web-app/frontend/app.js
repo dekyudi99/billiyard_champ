@@ -273,12 +273,15 @@ createApp({
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(matchEditForm.value)
                 });
-                const data = await res.json();
-                if (!res.ok) throw new Error(data.detail || "Gagal memperbarui skor pertandingan");
+                const data = await parseApiResponse(res);
                 editingMatch.value = null;
+                if (data.message && data.message.includes('berhasil dibuat')) {
+                    alert(data.message);
+                }
                 if (selectedTournamentData.value) {
                     await selectTournament(selectedTournamentData.value.id);
                 }
+                await refreshAll();
             } catch (e) {
                 alert("Error: " + e.message);
             }
@@ -465,43 +468,152 @@ createApp({
             const matches = tournamentSwissMatches.value;
             if (!matches.length) return [];
             
-            return [
+            const roundDefs = [
                 {
                     roundTitle: 'Ronde 1',
                     poolName: 'Pool 0-0 (16 Tim)',
                     badge: '8 Match BO1',
                     badgeClass: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-                    matches: matches.filter(m => m.round_name === 'Round 1')
+                    pools: [
+                        {
+                            name: 'Pool 0-0',
+                            type: 'neutral',
+                            icon: '🎱',
+                            title: 'Pool 0-0 (Semua Tim)',
+                            subtitle: '8 Pertandingan BO1',
+                            badge: 'BO1',
+                            badgeClass: 'bg-blue-500/10 text-blue-300 border-blue-500/30',
+                            borderClass: 'border-slate-800 hover:border-blue-500/40 bg-slate-900/90',
+                            matches: matches.filter(m => m.round_name === 'Round 1')
+                        }
+                    ]
                 },
                 {
                     roundTitle: 'Ronde 2',
                     poolName: 'Pool 1-0 & Pool 0-1',
                     badge: '8 Match BO1',
                     badgeClass: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-                    matches: matches.filter(m => m.round_name.includes('Round 2'))
+                    pools: [
+                        {
+                            name: 'Pool 1-0 (High)',
+                            type: 'high',
+                            icon: '🔥',
+                            title: 'Pool 1-0 (Pemenang R1)',
+                            subtitle: '4 Match • Menuju Rekor 2-0',
+                            badge: 'High Pool (1-0)',
+                            badgeClass: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+                            borderClass: 'border-emerald-500/30 hover:border-emerald-400/60 bg-emerald-950/15',
+                            matches: matches.filter(m => m.round_name.includes('Round 2') && (m.bracket_type.includes('1-0') || m.round_name.includes('High')))
+                        },
+                        {
+                            name: 'Pool 0-1 (Low)',
+                            type: 'low',
+                            icon: '⚠️',
+                            title: 'Pool 0-1 (Kalah R1)',
+                            subtitle: '4 Match • Menghindari Rekor 0-2',
+                            badge: 'Low Pool (0-1)',
+                            badgeClass: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+                            borderClass: 'border-amber-500/30 hover:border-amber-400/60 bg-amber-950/15',
+                            matches: matches.filter(m => m.round_name.includes('Round 2') && (m.bracket_type.includes('0-1') || m.round_name.includes('Low')))
+                        }
+                    ]
                 },
                 {
                     roundTitle: 'Ronde 3',
                     poolName: 'Pool 2-0, 1-1, 0-2',
                     badge: '8 Match (BO3 & BO1)',
                     badgeClass: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-                    matches: matches.filter(m => m.round_name.includes('Round 3'))
+                    pools: [
+                        {
+                            name: 'Pool 2-0 (High)',
+                            type: 'qualification',
+                            icon: '⭐',
+                            title: 'Pool 2-0 (Tiket Playoff)',
+                            subtitle: '2 Match BO3 • Menang Lolos ke Playoff!',
+                            badge: 'Tiket Playoff',
+                            badgeClass: 'bg-emerald-500/25 text-emerald-300 border-emerald-500/50 font-bold',
+                            borderClass: 'border-emerald-500/50 hover:border-emerald-400 bg-emerald-950/25 shadow-emerald-500/5 shadow-md',
+                            matches: matches.filter(m => m.round_name.includes('Round 3') && (m.bracket_type.includes('2-0') || m.round_name.includes('High')))
+                        },
+                        {
+                            name: 'Pool 1-1 (Mid)',
+                            type: 'mid',
+                            icon: '⚔️',
+                            title: 'Pool 1-1 (Pertengahan)',
+                            subtitle: '4 Match BO1 • Menuju Rekor 2-1 / 1-2',
+                            badge: 'Mid Pool',
+                            badgeClass: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/30',
+                            borderClass: 'border-slate-800 hover:border-indigo-500/40 bg-slate-900/80',
+                            matches: matches.filter(m => m.round_name.includes('Round 3') && (m.bracket_type.includes('1-1') || m.round_name.includes('Mid')))
+                        },
+                        {
+                            name: 'Pool 0-2 (Low)',
+                            type: 'elimination',
+                            icon: '💀',
+                            title: 'Pool 0-2 (Zona Gugur)',
+                            subtitle: '2 Match BO3 • Kalah Tereliminasi!',
+                            badge: 'Zona Gugur',
+                            badgeClass: 'bg-rose-500/25 text-rose-300 border-rose-500/50 font-bold',
+                            borderClass: 'border-rose-500/50 hover:border-rose-400 bg-rose-950/25 shadow-rose-500/5 shadow-md',
+                            matches: matches.filter(m => m.round_name.includes('Round 3') && (m.bracket_type.includes('0-2') || m.round_name.includes('Low')))
+                        }
+                    ]
                 },
                 {
                     roundTitle: 'Ronde 4',
                     poolName: 'Pool 2-1 & Pool 1-2',
                     badge: '6 Match BO3',
                     badgeClass: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-                    matches: matches.filter(m => m.round_name.includes('Round 4'))
+                    pools: [
+                        {
+                            name: 'Pool 2-1 (High)',
+                            type: 'qualification',
+                            icon: '⭐',
+                            title: 'Pool 2-1 (Tiket Playoff)',
+                            subtitle: '3 Match BO3 • Menang Lolos ke Playoff!',
+                            badge: 'Tiket Playoff',
+                            badgeClass: 'bg-emerald-500/25 text-emerald-300 border-emerald-500/50 font-bold',
+                            borderClass: 'border-emerald-500/50 hover:border-emerald-400 bg-emerald-950/25 shadow-emerald-500/5 shadow-md',
+                            matches: matches.filter(m => m.round_name.includes('Round 4') && (m.bracket_type.includes('2-1') || m.round_name.includes('High')))
+                        },
+                        {
+                            name: 'Pool 1-2 (Low)',
+                            type: 'elimination',
+                            icon: '💀',
+                            title: 'Pool 1-2 (Zona Gugur)',
+                            subtitle: '3 Match BO3 • Kalah Tereliminasi!',
+                            badge: 'Zona Gugur',
+                            badgeClass: 'bg-rose-500/25 text-rose-300 border-rose-500/50 font-bold',
+                            borderClass: 'border-rose-500/50 hover:border-rose-400 bg-rose-950/25 shadow-rose-500/5 shadow-md',
+                            matches: matches.filter(m => m.round_name.includes('Round 4') && (m.bracket_type.includes('1-2') || m.round_name.includes('Low')))
+                        }
+                    ]
                 },
                 {
                     roundTitle: 'Ronde 5 (Decider)',
                     poolName: 'Pool 2-2',
                     badge: '3 Match BO3 Decider',
                     badgeClass: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
-                    matches: matches.filter(m => m.round_name.includes('Round 5'))
+                    pools: [
+                        {
+                            name: 'Pool 2-2 (Decider)',
+                            type: 'decider',
+                            icon: '⚡',
+                            title: 'Pool 2-2 (Laga Penentuan)',
+                            subtitle: '3 Match BO3 • Menang Lolos, Kalah Gugur!',
+                            badge: 'Do or Die',
+                            badgeClass: 'bg-amber-500/25 text-amber-300 border-amber-500/50 font-bold',
+                            borderClass: 'border-amber-500/50 hover:border-amber-400 bg-amber-950/25 shadow-amber-500/5 shadow-md',
+                            matches: matches.filter(m => m.round_name.includes('Round 5'))
+                        }
+                    ]
                 }
             ];
+
+            return roundDefs.map(r => ({
+                ...r,
+                matches: r.pools.flatMap(p => p.matches)
+            }));
         });
 
         const swissQualifiedTeams = computed(() => {

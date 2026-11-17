@@ -9,7 +9,7 @@
     <!-- Vue 3 -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=2.8">
+    <link rel="stylesheet" href="style.css?v=3.0">
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen font-sans selection:bg-cyan-500 selection:text-slate-950">
     <div id="app" v-cloak class="flex flex-col min-h-screen">
@@ -852,7 +852,7 @@
                                     :class="tournamentModalStage === 'SWISS' ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-black shadow-md' : 'text-slate-400 hover:text-white'"
                                     class="px-3 py-1.5 rounded-lg text-xs transition flex items-center space-x-1.5">
                                 <span>⚡ Fase Gugur (Swiss Stage)</span>
-                                <span class="text-[10px] font-mono px-1.5 py-0.2 bg-black/20 rounded font-bold">({{ tournamentSwissMatches.length }})</span>
+                                <span class="text-[10px] font-mono px-1.5 py-0.2 bg-black/20 rounded font-bold">({{ tournamentSwissMatches.length }}/33)</span>
                             </button>
                         </div>
                         <div v-else>
@@ -1174,6 +1174,14 @@
                                 </div>
                             </div>
 
+                            <!-- Swiss Stage Explanation Banner -->
+                            <div class="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-800/40 text-xs text-slate-300 flex items-start sm:items-center space-x-3">
+                                <span class="text-lg text-cyan-400 shrink-0">ℹ️</span>
+                                <div class="leading-relaxed">
+                                    <strong>Format Swiss Stage:</strong> Dimulai dari 8 match di <strong>Ronde 1 (Pool 0-0)</strong>. Pertandingan ronde berikutnya (Ronde 2 s/d 5) <strong>otomatis dibuat oleh sistem</strong> setelah seluruh match pada ronde sebelumnya selesai dimainkan (Pool Menang vs Menang, Kalah vs Kalah). 8 tim yang pertama meraih 3 kemenangan akan otomatis masuk ke Babak Playoff.
+                                </div>
+                            </div>
+
                             <!-- Swiss Stage 5 Rounds Grid Flow -->
                             <div class="flex flex-row space-x-6 overflow-x-auto pb-4 pt-1">
                                 <div v-for="(sr, sIdx) in swissRounds" :key="sIdx"
@@ -1186,47 +1194,79 @@
                                         <p class="text-[11px] text-slate-400 truncate">{{ sr.poolName }}</p>
                                     </div>
 
-                                    <!-- Matches in this round -->
-                                    <div class="space-y-2.5">
-                                        <div v-for="m in sr.matches" :key="m.id"
-                                             class="bg-slate-900/90 rounded-xl border border-slate-800 hover:border-cyan-500/40 p-2.5 shadow-sm space-y-1.5 transition">
-                                            <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 pb-1 border-b border-slate-800/60">
-                                                <span>Match #{{ m.match_order }} • {{ m.bracket_type }}</span>
-                                                <button @click.stop="openEditMatchModal(m)" title="Edit Skor Pertandingan" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition">
-                                                    ✏️
-                                                </button>
+                                    <!-- Matches in this round separated by pool -->
+                                    <div class="space-y-4">
+                                        <!-- Empty / Pending State -->
+                                        <div v-if="sr.matches.length === 0" class="p-4 rounded-xl border border-dashed border-slate-800 bg-slate-950/40 text-center space-y-2 py-8">
+                                            <div class="text-2xl opacity-60">⏳</div>
+                                            <div class="text-xs font-bold text-slate-400">Menunggu Ronde {{ sIdx === 1 ? '1' : sIdx }} Selesai</div>
+                                            <div class="text-[11px] text-slate-500 max-w-[200px] mx-auto leading-relaxed">
+                                                Pertandingan ronde ini akan otomatis terbuat setelah seluruh match ronde sebelumnya tuntas dimainkan.
+                                            </div>
+                                        </div>
+
+                                        <!-- Pools in this Round -->
+                                        <div v-else v-for="(pool, pIdx) in sr.pools" :key="pIdx" class="space-y-2">
+                                            <!-- Pool Divider Header with Badge & Info -->
+                                            <div class="flex items-center justify-between px-3 py-1.5 rounded-lg border shadow-sm backdrop-blur-sm"
+                                                 :class="pool.badgeClass">
+                                                <div class="flex items-center space-x-1.5 truncate">
+                                                    <span class="text-xs shrink-0">{{ pool.icon }}</span>
+                                                    <span class="text-[11px] font-bold tracking-tight truncate">{{ pool.title }}</span>
+                                                </div>
+                                                <span class="text-[9px] font-mono font-bold uppercase shrink-0 px-1.5 py-0.5 rounded bg-black/20">{{ pool.badge }}</span>
                                             </div>
 
-                                            <!-- Team 1 -->
-                                            <div class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
-                                                 :class="m.winner_id === m.team1_id ? 'bg-cyan-950/40 text-cyan-300 font-bold border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
-                                                <div class="flex items-center space-x-2 truncate pr-2">
-                                                    <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
-                                                        <img v-if="m.team1_logo" :src="'/static/logos/' + m.team1_logo" class="max-w-full max-h-full object-contain">
-                                                        <span v-else class="text-[9px] font-bold text-slate-500">{{ m.team1_id ? m.team1_id.slice(0, 3) : '?' }}</span>
+                                            <!-- Matches in this pool -->
+                                            <div class="space-y-2">
+                                                <div v-for="m in pool.matches" :key="m.id"
+                                                     :class="[
+                                                        pool.borderClass,
+                                                        'rounded-xl border p-2.5 shadow-sm space-y-1.5 transition-all group'
+                                                     ]">
+                                                    <div class="flex items-center justify-between text-[10px] font-mono text-slate-500 pb-1 border-b border-slate-800/60">
+                                                        <span class="flex items-center space-x-1.5">
+                                                            <span class="text-slate-400 font-bold">#{{ m.match_order }}</span>
+                                                            <span class="text-slate-600">•</span>
+                                                            <span class="text-slate-400 font-semibold truncate max-w-[140px]">{{ m.bracket_type }}</span>
+                                                        </span>
+                                                        <button @click.stop="openEditMatchModal(m)" title="Edit Skor Pertandingan" class="p-1 rounded hover:bg-slate-800 text-slate-400 hover:text-cyan-400 transition">
+                                                            ✏️
+                                                        </button>
                                                     </div>
-                                                    <span class="truncate text-xs">{{ m.team1_name || m.team1_id }}</span>
-                                                </div>
-                                                <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
-                                                      :class="m.winner_id === m.team1_id ? 'bg-cyan-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
-                                                    {{ m.score1 !== null ? m.score1 : '-' }}
-                                                </span>
-                                            </div>
 
-                                            <!-- Team 2 -->
-                                            <div class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
-                                                 :class="m.winner_id === m.team2_id ? 'bg-cyan-950/40 text-cyan-300 font-bold border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
-                                                <div class="flex items-center space-x-2 truncate pr-2">
-                                                    <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
-                                                        <img v-if="m.team2_logo" :src="'/static/logos/' + m.team2_logo" class="max-w-full max-h-full object-contain">
-                                                        <span v-else class="text-[9px] font-bold text-slate-500">{{ m.team2_id ? m.team2_id.slice(0, 3) : '?' }}</span>
+                                                    <!-- Team 1 -->
+                                                    <div class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
+                                                         :class="m.winner_id === m.team1_id ? 'bg-cyan-950/40 text-cyan-300 font-bold border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
+                                                        <div class="flex items-center space-x-2 truncate pr-2">
+                                                            <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                                                <img v-if="m.team1_logo" :src="'/static/logos/' + m.team1_logo" class="max-w-full max-h-full object-contain">
+                                                                <span v-else class="text-[9px] font-bold text-slate-500">{{ m.team1_id ? m.team1_id.slice(0, 3) : '?' }}</span>
+                                                            </div>
+                                                            <span class="truncate text-xs">{{ m.team1_name || m.team1_id }}</span>
+                                                        </div>
+                                                        <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
+                                                              :class="m.winner_id === m.team1_id ? 'bg-cyan-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                                            {{ m.score1 !== null ? m.score1 : '-' }}
+                                                        </span>
                                                     </div>
-                                                    <span class="truncate text-xs">{{ m.team2_name || m.team2_id }}</span>
+
+                                                    <!-- Team 2 -->
+                                                    <div class="flex items-center justify-between p-1.5 rounded-lg transition-colors"
+                                                         :class="m.winner_id === m.team2_id ? 'bg-cyan-950/40 text-cyan-300 font-bold border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800/30'">
+                                                        <div class="flex items-center space-x-2 truncate pr-2">
+                                                            <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                                                <img v-if="m.team2_logo" :src="'/static/logos/' + m.team2_logo" class="max-w-full max-h-full object-contain">
+                                                                <span v-else class="text-[9px] font-bold text-slate-500">{{ m.team2_id ? m.team2_id.slice(0, 3) : '?' }}</span>
+                                                            </div>
+                                                            <span class="truncate text-xs">{{ m.team2_name || m.team2_id }}</span>
+                                                        </div>
+                                                        <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
+                                                              :class="m.winner_id === m.team2_id ? 'bg-cyan-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
+                                                            {{ m.score2 !== null ? m.score2 : '-' }}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                                <span class="font-mono font-black text-xs px-2 py-0.5 rounded"
-                                                      :class="m.winner_id === m.team2_id ? 'bg-cyan-500 text-slate-950' : 'bg-slate-950 text-slate-400 border border-slate-800'">
-                                                    {{ m.score2 !== null ? m.score2 : '-' }}
-                                                </span>
                                             </div>
                                         </div>
                                     </div>
@@ -1519,6 +1559,6 @@
     </div>
 
     <!-- Main Vue App Script -->
-    <script src="app.js?v=2.8"></script>
+    <script src="app.js?v=3.0"></script>
 </body>
 </html>
