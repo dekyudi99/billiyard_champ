@@ -449,10 +449,6 @@
                                     <span>MSL Championship Points:</span>
                                     <span class="font-bold text-slate-200">{{ reg.msl_points.toLocaleString() }}</span>
                                 </div>
-                                <div class="flex justify-between">
-                                    <span>Poin Kompetitif:</span>
-                                    <span class="font-bold text-slate-200">{{ reg.comp_points.toLocaleString() }}</span>
-                                </div>
                             </div>
                         </div>
 
@@ -1174,11 +1170,28 @@
                                 </div>
                             </div>
 
-                            <!-- Swiss Stage Explanation Banner -->
-                            <div class="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-800/40 text-xs text-slate-300 flex items-start sm:items-center space-x-3">
-                                <span class="text-lg text-cyan-400 shrink-0">ℹ️</span>
-                                <div class="leading-relaxed">
-                                    <strong>Format Swiss Stage:</strong> Dimulai dari 8 match di <strong>Ronde 1 (Pool 0-0)</strong>. Pertandingan ronde berikutnya (Ronde 2 s/d 5) <strong>otomatis dibuat oleh sistem</strong> setelah seluruh match pada ronde sebelumnya selesai dimainkan (Pool Menang vs Menang, Kalah vs Kalah). 8 tim yang pertama meraih 3 kemenangan akan otomatis masuk ke Babak Playoff.
+                            <!-- Swiss Stage Explanation Banner & Action Controls -->
+                            <div class="p-3.5 rounded-xl bg-cyan-950/30 border border-cyan-800/40 text-xs text-slate-300 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                                <div class="flex items-start sm:items-center space-x-3">
+                                    <span class="text-lg text-cyan-400 shrink-0">ℹ️</span>
+                                    <div class="leading-relaxed">
+                                        <strong>Format Swiss Stage:</strong> 8 tim yang pertama meraih 3 kemenangan akan lolos ke Playoff. Ronde berikutnya otomatis dibuat saat ronde selesai, atau Anda bisa gunakan tombol aksi manual di bawah jika ingin mengatur sendiri.
+                                    </div>
+                                </div>
+                                <div class="flex items-center flex-wrap gap-2 shrink-0">
+                                    <button @click="triggerProgressSwiss" 
+                                            class="px-3 py-1.5 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-black text-xs flex items-center space-x-1.5 shadow-md transition">
+                                        <span>⚡ Generate Ronde Berikutnya</span>
+                                    </button>
+                                    <button @click="openCreateSwissMatchModal(2)" 
+                                            class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-500/30 font-bold text-xs flex items-center space-x-1.5 transition">
+                                        <span>➕ Buat Match Manual</span>
+                                    </button>
+                                    <button @click="forceSeedPlayoff" 
+                                            class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-bold text-xs flex items-center space-x-1 transition"
+                                            title="Tempatkan 8 tim terbaik Swiss Stage langsung ke Playoff Upper Bracket">
+                                        <span>🏆 Loloskan ke Playoff</span>
+                                    </button>
                                 </div>
                             </div>
 
@@ -1189,7 +1202,14 @@
                                     <div class="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
                                         <div class="flex items-center justify-between">
                                             <h6 class="font-extrabold text-xs text-white uppercase">{{ sr.roundTitle }}</h6>
-                                            <span class="text-[10px] font-bold px-2 py-0.5 rounded border" :class="sr.badgeClass">{{ sr.badge }}</span>
+                                            <div class="flex items-center space-x-1.5">
+                                                <button @click.stop="openCreateSwissMatchModal(sIdx + 1)" 
+                                                        class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-900 border border-cyan-500/30 hover:border-cyan-400 text-cyan-300 transition"
+                                                        title="Tambah Pertandingan Manual ke Ronde ini">
+                                                    + Match
+                                                </button>
+                                                <span class="text-[10px] font-bold px-2 py-0.5 rounded border" :class="sr.badgeClass">{{ sr.badge }}</span>
+                                            </div>
                                         </div>
                                         <p class="text-[11px] text-slate-400 truncate">{{ sr.poolName }}</p>
                                     </div>
@@ -1197,11 +1217,19 @@
                                     <!-- Matches in this round separated by pool -->
                                     <div class="space-y-4">
                                         <!-- Empty / Pending State -->
-                                        <div v-if="sr.matches.length === 0" class="p-4 rounded-xl border border-dashed border-slate-800 bg-slate-950/40 text-center space-y-2 py-8">
+                                        <div v-if="sr.matches.length === 0" class="p-4 rounded-xl border border-dashed border-slate-800 bg-slate-950/40 text-center space-y-3 py-6">
                                             <div class="text-2xl opacity-60">⏳</div>
-                                            <div class="text-xs font-bold text-slate-400">Menunggu Ronde {{ sIdx === 1 ? '1' : sIdx }} Selesai</div>
-                                            <div class="text-[11px] text-slate-500 max-w-[200px] mx-auto leading-relaxed">
-                                                Pertandingan ronde ini akan otomatis terbuat setelah seluruh match ronde sebelumnya tuntas dimainkan.
+                                            <div class="text-xs font-bold text-slate-300">Menunggu Ronde {{ sIdx === 1 ? '1' : sIdx }} Selesai</div>
+                                            <div class="text-[11px] text-slate-500 max-w-[210px] mx-auto leading-relaxed">
+                                                Pertandingan ronde ini otomatis terbuat setelah seluruh match ronde sebelumnya selesai.
+                                            </div>
+                                            <div class="flex flex-col gap-1.5 pt-1 max-w-[200px] mx-auto">
+                                                <button @click="triggerProgressSwiss" class="w-full py-1.5 rounded-lg bg-cyan-600/90 hover:bg-cyan-500 text-white font-extrabold text-xs transition flex items-center justify-center space-x-1 shadow">
+                                                    <span>⚡ Buat Ronde Ini Otomatis</span>
+                                                </button>
+                                                <button @click="openCreateSwissMatchModal(sIdx + 1)" class="w-full py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-cyan-300 border border-cyan-500/40 font-bold text-xs transition flex items-center justify-center space-x-1">
+                                                    <span>➕ Atur / Buat Match Manual</span>
+                                                </button>
                                             </div>
                                         </div>
 
@@ -1502,14 +1530,119 @@
                     </div>
 
                     <!-- Action Buttons (Balanced grid on mobile) -->
-                    <div class="grid grid-cols-2 gap-2.5 pt-3 border-t border-slate-800 w-full">
-                        <button @click="editingMatch = null" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-semibold transition text-center">
+                    <div class="flex items-center gap-2 pt-3 border-t border-slate-800 w-full">
+                        <button v-if="editingMatch?.stage === 'SWISS'" @click="deleteMatch(editingMatch.id)" type="button" class="py-2.5 px-3 rounded-xl bg-rose-950/40 hover:bg-rose-900 border border-rose-500/30 text-rose-300 text-xs font-semibold transition shrink-0" title="Hapus pertandingan ini">
+                            🗑️ Hapus
+                        </button>
+                        <button @click="editingMatch = null" class="flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-semibold transition text-center">
                             Batal
                         </button>
-                        <button @click="saveMatchScore" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-bold text-xs sm:text-sm uppercase tracking-wider shadow-lg transition text-center">
+                        <button @click="saveMatchScore" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-bold text-xs sm:text-sm uppercase tracking-wider shadow-lg transition text-center">
                             💾 Simpan Skor
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- 8B. MANUAL SWISS MATCH MODAL -->
+            <div v-if="showCreateSwissMatchModal" class="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-sm overflow-y-auto">
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md max-h-[92vh] overflow-y-auto p-4 sm:p-6 space-y-4 shadow-2xl animate-scaleUp">
+                    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                        <div>
+                            <h3 class="text-base font-extrabold text-white">Buat Pertandingan Swiss Stage Manual</h3>
+                            <p class="text-[11px] text-slate-400">Atur ronde, pool, serta tim yang akan bertanding</p>
+                        </div>
+                        <button @click="showCreateSwissMatchModal = false" class="text-slate-400 hover:text-white p-1">✕</button>
+                    </div>
+
+                    <div class="space-y-3">
+                        <!-- Pilihan Ronde -->
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-300 block mb-1">Ronde</label>
+                            <select v-model="swissMatchForm.round_name" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none">
+                                <option value="Round 1">Ronde 1</option>
+                                <option value="Round 2 (High)">Ronde 2 (High)</option>
+                                <option value="Round 2 (Low)">Ronde 2 (Low)</option>
+                                <option value="Round 3 (High)">Ronde 3 (High)</option>
+                                <option value="Round 3 (Mid)">Ronde 3 (Mid)</option>
+                                <option value="Round 3 (Low)">Ronde 3 (Low)</option>
+                                <option value="Round 4 (High)">Ronde 4 (High)</option>
+                                <option value="Round 4 (Low)">Ronde 4 (Low)</option>
+                                <option value="Round 5 (Decider)">Ronde 5 (Decider)</option>
+                            </select>
+                        </div>
+
+                        <!-- Pilihan Pool / Bracket Type -->
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-300 block mb-1">Pool / Format Pertandingan</label>
+                            <select v-model="swissMatchForm.bracket_type" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none">
+                                <option value="Pool 0-0 (BO1)">Pool 0-0 (BO1)</option>
+                                <option value="Pool 1-0 (BO1)">Pool 1-0 (BO1)</option>
+                                <option value="Pool 0-1 (BO1)">Pool 0-1 (BO1)</option>
+                                <option value="Pool 2-0 (BO3)">Pool 2-0 (BO3)</option>
+                                <option value="Pool 1-1 (BO1)">Pool 1-1 (BO1)</option>
+                                <option value="Pool 0-2 (BO3)">Pool 0-2 (BO3)</option>
+                                <option value="Pool 2-1 (BO3)">Pool 2-1 (BO3)</option>
+                                <option value="Pool 1-2 (BO3)">Pool 1-2 (BO3)</option>
+                                <option value="Pool 2-2 (BO3)">Pool 2-2 (BO3)</option>
+                            </select>
+                        </div>
+
+                        <!-- Tim 1 -->
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                            <span class="text-[11px] font-bold text-slate-400 block uppercase">Tim 1</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-7 h-7 rounded bg-slate-900 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                    <img v-if="getTeamObject(swissMatchForm.team1_id)?.logo" :src="'/static/logos/' + getTeamObject(swissMatchForm.team1_id).logo" class="max-w-full max-h-full object-contain">
+                                    <span v-else class="text-[10px] font-bold text-slate-500">?</span>
+                                </div>
+                                <select v-model="swissMatchForm.team1_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none">
+                                    <option value="">-- Pilih Tim 1 --</option>
+                                    <option v-for="t in teams" :key="'sw-t1-' + t.id" :value="t.id">
+                                        {{ t.name }} ({{ t.id }}) [{{ t.region_id }}]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Tim 2 -->
+                        <div class="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-2">
+                            <span class="text-[11px] font-bold text-slate-400 block uppercase">Tim 2</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-7 h-7 rounded bg-slate-900 border border-slate-800 p-0.5 flex items-center justify-center shrink-0">
+                                    <img v-if="getTeamObject(swissMatchForm.team2_id)?.logo" :src="'/static/logos/' + getTeamObject(swissMatchForm.team2_id).logo" class="max-w-full max-h-full object-contain">
+                                    <span v-else class="text-[10px] font-bold text-slate-500">?</span>
+                                </div>
+                                <select v-model="swissMatchForm.team2_id" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white focus:border-cyan-500 focus:outline-none">
+                                    <option value="">-- Pilih Tim 2 --</option>
+                                    <option v-for="t in teams" :key="'sw-t2-' + t.id" :value="t.id">
+                                        {{ t.name }} ({{ t.id }}) [{{ t.region_id }}]
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Status -->
+                        <div>
+                            <label class="text-[11px] font-bold text-slate-300 block mb-1">Status</label>
+                            <select v-model="swissMatchForm.status" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-white focus:border-cyan-500 focus:outline-none">
+                                <option value="PENDING">PENDING (Menunggu)</option>
+                                <option value="ONGOING">ONGOING (Sedang Berlangsung)</option>
+                                <option value="COMPLETED">COMPLETED (Selesai)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-2.5 pt-3 border-t border-slate-800">
+                        <button @click="showCreateSwissMatchModal = false" class="py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition text-center">
+                            Batal
+                        </button>
+                        <button @click="submitCreateSwissMatch" class="py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 text-slate-950 font-bold text-xs uppercase tracking-wider shadow-lg transition text-center">
+                            ➕ Simpan Match
+                        </button>
+                    </div>
+                </div>
+            </div>
                 </div>
             </div>
 
@@ -1559,6 +1692,6 @@
     </div>
 
     <!-- Main Vue App Script -->
-    <script src="app.js?v=3.0"></script>
+    <script src="app.js?v=3.1"></script>
 </body>
 </html>

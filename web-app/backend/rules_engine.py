@@ -123,23 +123,23 @@ def recalculate_all_time_standings(conn):
             json.dumps(data['trophies_detail']), tid
         ))
 
-    # 5. Update Regions Table
-    c.execute("SELECT id, comp_points FROM regions")
+    # 5. Update Regions Table (Poin kompetitif dihapus, total_points = m_points + msl_points)
+    c.execute("SELECT id FROM regions")
     reg_rows = c.fetchall()
     reg_totals = []
     for r in reg_rows:
         rid = r['id']
         m_pts = region_m_points.get(rid, 0)
         msl_pts = region_msl_points.get(rid, 0)
-        c_pts = r['comp_points']
-        tot = m_pts + msl_pts + c_pts
+        c_pts = 0
+        tot = m_pts + msl_pts
         reg_totals.append((rid, m_pts, msl_pts, c_pts, tot))
         
     sorted_regs = sorted(reg_totals, key=lambda x: x[4], reverse=True)
     for rank, (rid, m_pts, msl_pts, c_pts, tot) in enumerate(sorted_regs, 1):
         c.execute("""
             UPDATE regions
-            SET m_points = ?, msl_points = ?, total_points = ?, rank = ?
+            SET m_points = ?, msl_points = ?, comp_points = 0, total_points = ?, rank = ?
             WHERE id = ?
         """, (m_pts, msl_pts, tot, rank, rid))
 

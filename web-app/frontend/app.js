@@ -42,6 +42,20 @@ createApp({
             status: 'COMPLETED'
         });
 
+        // Manual Swiss Match Creation State
+        const showCreateSwissMatchModal = ref(false);
+        const swissMatchForm = ref({
+            round_name: 'Round 1',
+            bracket_type: 'Pool 0-0 (BO1)',
+            team1_id: '',
+            team2_id: '',
+            score1: null,
+            score2: null,
+            winner_id: '',
+            status: 'PENDING',
+            match_order: null
+        });
+
         // Finish Tournament Form & Podium Edit State
         const showPodiumEdit = ref(false);
         const finishForm = ref({
@@ -268,6 +282,13 @@ createApp({
         const saveMatchScore = async () => {
             if (!editingMatch.value) return;
             try {
+                if (matchEditForm.value.winner_id) {
+                    if (matchEditForm.value.winner_id === matchEditForm.value.team1_id) {
+                        matchEditForm.value.loser_id = matchEditForm.value.team2_id;
+                    } else if (matchEditForm.value.winner_id === matchEditForm.value.team2_id) {
+                        matchEditForm.value.loser_id = matchEditForm.value.team1_id;
+                    }
+                }
                 const res = await fetch(`/api/matches/${editingMatch.value.id}/update`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -275,12 +296,118 @@ createApp({
                 });
                 const data = await parseApiResponse(res);
                 editingMatch.value = null;
-                if (data.message && data.message.includes('berhasil dibuat')) {
+                if (data.message) {
                     alert(data.message);
                 }
                 if (selectedTournamentData.value) {
                     await selectTournament(selectedTournamentData.value.id);
                 }
+                await refreshAll();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        const deleteMatch = async (matchId) => {
+            if (!matchId) return;
+            if (!confirm("Yakin ingin menghapus pertandingan ini? Tindakan ini tidak dapat dibatalkan.")) return;
+            try {
+                const res = await fetch(`/api/matches/${matchId}`, {
+                    method: 'DELETE'
+                });
+                const data = await parseApiResponse(res);
+                alert(data.message || "Pertandingan berhasil dihapus!");
+                editingMatch.value = null;
+                if (selectedTournamentData.value) {
+                    await selectTournament(selectedTournamentData.value.id);
+                }
+                await refreshAll();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        const openCreateSwissMatchModal = (roundNum) => {
+            let rName = 'Round 1';
+            let bType = 'Pool 0-0 (BO1)';
+            if (roundNum === 2) {
+                rName = 'Round 2 (High)';
+                bType = 'Pool 1-0 (BO1)';
+            } else if (roundNum === 3) {
+                rName = 'Round 3 (High)';
+                bType = 'Pool 2-0 (BO3)';
+            } else if (roundNum === 4) {
+                rName = 'Round 4 (High)';
+                bType = 'Pool 2-1 (BO3)';
+            } else if (roundNum === 5) {
+                rName = 'Round 5 (Decider)';
+                bType = 'Pool 2-2 (BO3)';
+            }
+            swissMatchForm.value = {
+                round_name: rName,
+                bracket_type: bType,
+                team1_id: '',
+                team2_id: '',
+                score1: null,
+                score2: null,
+                winner_id: '',
+                status: 'PENDING',
+                match_order: null
+            };
+            showCreateSwissMatchModal.value = true;
+        };
+
+        const submitCreateSwissMatch = async () => {
+            if (!selectedTournamentData.value) return;
+            if (!swissMatchForm.value.team1_id || !swissMatchForm.value.team2_id) {
+                alert("Harap pilih Tim 1 dan Tim 2 terlebih dahulu!");
+                return;
+            }
+            try {
+                const payload = {
+                    ...swissMatchForm.value,
+                    stage: 'SWISS'
+                };
+                const res = await fetch(`/api/tournaments/${selectedTournamentData.value.id}/matches`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await parseApiResponse(res);
+                alert(data.message || "Pertandingan Swiss berhasil ditambahkan!");
+                showCreateSwissMatchModal.value = false;
+                await selectTournament(selectedTournamentData.value.id);
+                await refreshAll();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        const triggerProgressSwiss = async () => {
+            if (!selectedTournamentData.value) return;
+            try {
+                const res = await fetch(`/api/tournaments/${selectedTournamentData.value.id}/progress-swiss`, {
+                    method: 'POST'
+                });
+                const data = await parseApiResponse(res);
+                alert(data.message);
+                await selectTournament(selectedTournamentData.value.id);
+                await refreshAll();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        const forceSeedPlayoff = async () => {
+            if (!selectedTournamentData.value) return;
+            if (!confirm("Tempatkan 8 tim teratas Swiss Stage langsung ke bagan Playoff Upper Bracket?")) return;
+            try {
+                const res = await fetch(`/api/tournaments/${selectedTournamentData.value.id}/force-seed-playoff`, {
+                    method: 'POST'
+                });
+                const data = await parseApiResponse(res);
+                alert(data.message);
+                await selectTournament(selectedTournamentData.value.id);
                 await refreshAll();
             } catch (e) {
                 alert("Error: " + e.message);
@@ -643,10 +770,11 @@ createApp({
             const r5 = matches.filter(m => m.bracket_type.includes('2-2'));
             
             [...r3Low, ...r4Low, ...r5].forEach(m => {
-                if (m.loser_id) {
-                    const tName = m.loser_id === m.team1_id ? m.team1_name : m.team2_name;
-                    const tLogo = m.loser_id === m.team1_id ? m.team1_logo : m.team2_logo;
-                    elim.push({ id: m.loser_id, name: tName || m.loser_id, logo: tLogo });
+                const lId = m.loser_id || (m.winner_id ? (m.winner_id === m.team1_id ? m.team2_id : m.team1_id) : null);
+                if (lId) {
+                    const tName = lId === m.team1_id ? m.team1_name : m.team2_name;
+                    const tLogo = lId === m.team1_id ? m.team1_logo : m.team2_logo;
+                    elim.push({ id: lId, name: tName || lId, logo: tLogo });
                 }
             });
             return elim;
@@ -704,6 +832,13 @@ createApp({
             getTeamDisplayName,
             generateQualifiers,
             saveMatchScore,
+            deleteMatch,
+            showCreateSwissMatchModal,
+            swissMatchForm,
+            openCreateSwissMatchModal,
+            submitCreateSwissMatch,
+            triggerProgressSwiss,
+            forceSeedPlayoff,
             finishForm,
             showPodiumEdit,
             getAvailableTeamsForTournament,

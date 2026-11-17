@@ -5,56 +5,56 @@
       "name": "Middle East & Arabia / Europe",
       "m_points": 1000,
       "msl_points": 3750,
-      "comp_points": 200,
-      "total_points": 4950
+      "comp_points": 0,
+      "total_points": 4750
     },
     {
       "id": "PEL",
       "name": "Peace Elite / East Asia",
       "m_points": 4000,
       "msl_points": 0,
-      "comp_points": 200,
-      "total_points": 4200
+      "comp_points": 0,
+      "total_points": 4000
     },
     {
       "id": "ID",
       "name": "Indonesia",
       "m_points": 2250,
       "msl_points": 750,
-      "comp_points": 200,
-      "total_points": 3200
+      "comp_points": 0,
+      "total_points": 3000
     },
     {
       "id": "SEA",
       "name": "Southeast Asia",
       "m_points": 1250,
       "msl_points": 1500,
-      "comp_points": 200,
-      "total_points": 2950
+      "comp_points": 0,
+      "total_points": 2750
     },
     {
       "id": "PH",
       "name": "Philippines",
       "m_points": 2250,
       "msl_points": 0,
-      "comp_points": 200,
-      "total_points": 2450
+      "comp_points": 0,
+      "total_points": 2250
     },
     {
       "id": "MY",
       "name": "Malaysia",
       "m_points": 500,
       "msl_points": 0,
-      "comp_points": 300,
-      "total_points": 800
+      "comp_points": 0,
+      "total_points": 500
     },
     {
       "id": "AM",
       "name": "Americas",
       "m_points": 0,
       "msl_points": 0,
-      "comp_points": 200,
-      "total_points": 200
+      "comp_points": 0,
+      "total_points": 0
     }
   ],
   "teams": [

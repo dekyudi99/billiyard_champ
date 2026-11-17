@@ -57,6 +57,20 @@ def init_db():
     # Data migration: Pastikan nama tim AP Bren tidak memiliki 'Falcon'
     c.execute("UPDATE teams SET name = 'AP Bren' WHERE id = 'APBR' AND name LIKE '%Falcon%'")
     
+    # Data migration: Reset / hapus poin kompetitif di region
+    c.execute("UPDATE regions SET comp_points = 0, total_points = m_points + msl_points")
+
+    # Data migration: Perbaiki pertandingan selesai yang loser_id bernilai NULL
+    c.execute("""
+        UPDATE matches 
+        SET loser_id = CASE 
+            WHEN winner_id = team1_id THEN team2_id 
+            WHEN winner_id = team2_id THEN team1_id 
+            ELSE loser_id 
+        END
+        WHERE loser_id IS NULL AND winner_id IS NOT NULL
+    """)
+    
     # Seasons Table (Manages workflow & sequence)
     c.execute('''
     CREATE TABLE IF NOT EXISTS seasons (

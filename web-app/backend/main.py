@@ -7,6 +7,7 @@ from typing import Optional, List, Dict, Any
 import sqlite3
 import os
 import json
+from collections import defaultdict
 
 from database import get_connection, init_db
 from rules_engine import recalculate_all_time_standings, update_road_to_world_slots, get_season_workflow_status
@@ -222,33 +223,53 @@ def check_and_progress_swiss_stage(conn, tournament_id: str):
     c.execute("SELECT * FROM matches WHERE tournament_id=? AND stage='SWISS' ORDER BY match_order ASC", (tournament_id,))
     matches = [dict(row) for row in c.fetchall()]
     if not matches:
-        return None
+        return "Tidak ada pertandingan Swiss Stage pada turnamen ini."
 
+    # Kumpulkan semua tim yang bertanding di Swiss Stage
     all_teams = set()
-    for m in matches[:8]:
-        if m['team1_id']: all_teams.add(m['team1_id'])
-        if m['team2_id']: all_teams.add(m['team2_id'])
+    c.execute("SELECT team_id FROM qualification_slots WHERE target_tournament=? AND team_id IS NOT NULL", (tournament_id,))
+    for r in c.fetchall():
+        if r['team_id']: all_teams.add(r['team_id'])
+    for m in matches:
+        if m['team1_id'] and not str(m['team1_id']).startswith('Winner') and not str(m['team1_id']).startswith('Loser') and m['team1_id'] != 'TBD':
+            all_teams.add(m['team1_id'])
+        if m['team2_id'] and not str(m['team2_id']).startswith('Winner') and not str(m['team2_id']).startswith('Loser') and m['team2_id'] != 'TBD':
+            all_teams.add(m['team2_id'])
 
-    records = {t: {'W': 0, 'L': 0, 'opponents': set()} for t in all_teams}
+    records = defaultdict(lambda: {'W': 0, 'L': 0, 'opponents': set()})
     completed_orders = set()
     for m in matches:
-        if m['status'] == 'COMPLETED' and m['winner_id'] and m['loser_id']:
-            records[m['winner_id']]['W'] += 1
-            records[m['loser_id']]['L'] += 1
-            records[m['winner_id']]['opponents'].add(m['loser_id'])
-            records[m['loser_id']]['opponents'].add(m['winner_id'])
-            completed_orders.add(m['match_order'])
+        w_id = m['winner_id']
+        l_id = m['loser_id']
+        if not l_id and w_id:
+            l_id = m['team2_id'] if w_id == m['team1_id'] else (m['team1_id'] if w_id == m['team2_id'] else None)
 
-    existing_orders = {m['match_order'] for m in matches}
+        if m['status'] == 'COMPLETED' and w_id and l_id:
+            records[w_id]['W'] += 1
+            records[l_id]['L'] += 1
+            records[w_id]['opponents'].add(l_id)
+            records[l_id]['opponents'].add(w_id)
+            if m['match_order']:
+                completed_orders.add(m['match_order'])
 
-    r1_orders = set(range(1, 9))
-    r2_orders = set(range(9, 17))
-    r3_orders = set(range(17, 25))
-    r4_orders = set(range(25, 31))
-    r5_orders = set(range(31, 34))
+    r1_m = [m for m in matches if m['round_name'] == 'Round 1']
+    r2_m = [m for m in matches if 'Round 2' in m['round_name']]
+    r3_m = [m for m in matches if 'Round 3' in m['round_name']]
+    r4_m = [m for m in matches if 'Round 4' in m['round_name']]
+    r5_m = [m for m in matches if 'Round 5' in m['round_name']]
+
+    r1_done = len(r1_m) >= 8 and all(m['status'] == 'COMPLETED' for m in r1_m)
+    r2_done = len(r2_m) >= 8 and all(m['status'] == 'COMPLETED' for m in r2_m)
+    r3_done = len(r3_m) >= 8 and all(m['status'] == 'COMPLETED' for m in r3_m)
+    r4_done = len(r4_m) >= 6 and all(m['status'] == 'COMPLETED' for m in r4_m)
+    r5_done = len(r5_m) >= 3 and all(m['status'] == 'COMPLETED' for m in r5_m)
 
     # 1. Generate Round 2 (matches 9..16)
-    if r1_orders.issubset(completed_orders) and not r2_orders.intersection(existing_orders):
+    if len(r2_m) == 0:
+        if not r1_done:
+            inc = [f"#{m['match_order']}" for m in r1_m if m['status'] != 'COMPLETED']
+            return f"Ronde 1 belum selesai. Masih ada {len(inc)} pertandingan belum COMPLETED ({', '.join(inc)})."
+
         p_1_0 = [t for t in all_teams if records[t]['W'] == 1 and records[t]['L'] == 0]
         p_0_1 = [t for t in all_teams if records[t]['W'] == 0 and records[t]['L'] == 1]
         
@@ -271,7 +292,11 @@ def check_and_progress_swiss_stage(conn, tournament_id: str):
         return "Ronde 2 Swiss Stage berhasil dibuat (8 Match: Pool 1-0 & Pool 0-1)!"
 
     # 2. Generate Round 3 (matches 17..24)
-    if r2_orders.issubset(completed_orders) and not r3_orders.intersection(existing_orders):
+    if len(r3_m) == 0:
+        if not r2_done:
+            inc = [f"#{m['match_order']}" for m in r2_m if m['status'] != 'COMPLETED']
+            return f"Ronde 2 belum selesai. Masih ada {len(inc)} pertandingan belum COMPLETED ({', '.join(inc)})."
+
         p_2_0 = [t for t in all_teams if records[t]['W'] == 2 and records[t]['L'] == 0]
         p_1_1 = [t for t in all_teams if records[t]['W'] == 1 and records[t]['L'] == 1]
         p_0_2 = [t for t in all_teams if records[t]['W'] == 0 and records[t]['L'] == 2]
@@ -298,7 +323,11 @@ def check_and_progress_swiss_stage(conn, tournament_id: str):
         return "Ronde 3 Swiss Stage berhasil dibuat (8 Match)!"
 
     # 3. Generate Round 4 (matches 25..30)
-    if r3_orders.issubset(completed_orders) and not r4_orders.intersection(existing_orders):
+    if len(r4_m) == 0:
+        if not r3_done:
+            inc = [f"#{m['match_order']}" for m in r3_m if m['status'] != 'COMPLETED']
+            return f"Ronde 3 belum selesai. Masih ada {len(inc)} pertandingan belum COMPLETED ({', '.join(inc)})."
+
         p_2_1 = [t for t in all_teams if records[t]['W'] == 2 and records[t]['L'] == 1]
         p_1_2 = [t for t in all_teams if records[t]['W'] == 1 and records[t]['L'] == 2]
         
@@ -321,7 +350,11 @@ def check_and_progress_swiss_stage(conn, tournament_id: str):
         return "Ronde 4 Swiss Stage berhasil dibuat (6 Match)!"
 
     # 4. Generate Round 5 (matches 31..33)
-    if r4_orders.issubset(completed_orders) and not r5_orders.intersection(existing_orders):
+    if len(r5_m) == 0:
+        if not r4_done:
+            inc = [f"#{m['match_order']}" for m in r4_m if m['status'] != 'COMPLETED']
+            return f"Ronde 4 belum selesai. Masih ada {len(inc)} pertandingan belum COMPLETED ({', '.join(inc)})."
+
         p_2_2 = [t for t in all_teams if records[t]['W'] == 2 and records[t]['L'] == 2]
         opponents = {t: records[t]['opponents'] for t in all_teams}
         pairs_2_2 = pair_swiss_pool(p_2_2, opponents)
@@ -339,13 +372,17 @@ def check_and_progress_swiss_stage(conn, tournament_id: str):
         return "Ronde 5 (Decider) Swiss Stage berhasil dibuat (3 Match)!"
 
     # 5. When all 33 matches are done -> Seed 8 qualified teams into Playoff matches!
-    if r5_orders.issubset(completed_orders):
-        r3_high_winners = [m['winner_id'] for m in matches if m['round_name'] == 'Round 3 (High)' and m['winner_id']]
-        r4_high_winners = [m['winner_id'] for m in matches if m['round_name'] == 'Round 4 (High)' and m['winner_id']]
-        r5_winners = [m['winner_id'] for m in matches if m['round_name'] == 'Round 5 (Decider)' and m['winner_id']]
+    if r5_done:
+        r3_high_winners = [m['winner_id'] for m in matches if 'Round 3' in m['round_name'] and '2-0' in m.get('bracket_type', '') and m['winner_id']]
+        r4_high_winners = [m['winner_id'] for m in matches if 'Round 4' in m['round_name'] and '2-1' in m.get('bracket_type', '') and m['winner_id']]
+        r5_winners = [m['winner_id'] for m in matches if 'Round 5' in m['round_name'] and m['winner_id']]
         qualified = r3_high_winners + r4_high_winners + r5_winners
         
-        if len(qualified) == 8:
+        if len(qualified) < 8:
+            top_teams = sorted(all_teams, key=lambda t: (records[t]['W'], -records[t]['L']), reverse=True)
+            qualified = top_teams[:8]
+            
+        if len(qualified) >= 8:
             q_seeds = [
                 (1, qualified[0], qualified[7]),
                 (2, qualified[3], qualified[4]),
@@ -361,7 +398,7 @@ def check_and_progress_swiss_stage(conn, tournament_id: str):
             conn.commit()
             return "Swiss Stage selesai! 8 tim lolos telah otomatis masuk ke bagan Playoff!"
 
-    return None
+    return "Status Swiss Stage sudah up to date."
 
 @app.post("/api/matches/{match_id}/update")
 def update_match_score(match_id: int, req: MatchUpdateRequest):
@@ -378,17 +415,19 @@ def update_match_score(match_id: int, req: MatchUpdateRequest):
     r_name = req.round_name if req.round_name is not None else match_row['round_name']
     b_type = req.bracket_type if req.bracket_type is not None else match_row['bracket_type']
     
-    # Auto-determine winner if scores are provided and winner_id not explicit
+    # Auto-determine winner & loser if scores provided or winner_id selected
     winner_id = req.winner_id
     loser_id = req.loser_id
-    if req.score1 is not None and req.score2 is not None:
-        if not winner_id:
-            if req.score1 > req.score2:
-                winner_id = t1_id
-                loser_id = t2_id
-            elif req.score2 > req.score1:
-                winner_id = t2_id
-                loser_id = t1_id
+    if winner_id:
+        if not loser_id:
+            loser_id = t2_id if winner_id == t1_id else (t1_id if winner_id == t2_id else None)
+    elif req.score1 is not None and req.score2 is not None:
+        if req.score1 > req.score2:
+            winner_id = t1_id
+            loser_id = t2_id
+        elif req.score2 > req.score1:
+            winner_id = t2_id
+            loser_id = t1_id
                 
     c.execute("""
         UPDATE matches
@@ -438,15 +477,68 @@ def trigger_progress_swiss(tournament_id: str):
     conn.close()
     return {"message": res or "Status Swiss Stage sudah up to date."}
 
+@app.post("/api/tournaments/{tournament_id}/force-seed-playoff")
+def force_seed_playoff(tournament_id: str):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("SELECT * FROM matches WHERE tournament_id=? AND stage='SWISS'", (tournament_id,))
+    matches = [dict(row) for row in c.fetchall()]
+    
+    wins = defaultdict(int)
+    for m in matches:
+        w_id = m['winner_id']
+        if m['status'] == 'COMPLETED' and w_id and not str(w_id).startswith('Winner'):
+            wins[w_id] += 1
+            
+    top_8 = sorted(wins.keys(), key=lambda t: wins[t], reverse=True)[:8]
+    if len(top_8) < 8:
+        # Pull from qualification slots if less than 8
+        c.execute("SELECT team_id FROM qualification_slots WHERE target_tournament=? AND team_id IS NOT NULL", (tournament_id,))
+        for r in c.fetchall():
+            if r['team_id'] and r['team_id'] not in top_8:
+                top_8.append(r['team_id'])
+                if len(top_8) >= 8: break
+                
+    if len(top_8) < 8:
+        conn.close()
+        raise HTTPException(status_code=400, detail=f"Tidak cukup tim untuk diisi ke Playoff (Hanya {len(top_8)} tim).")
+        
+    q_seeds = [
+        (1, top_8[0], top_8[7]),
+        (2, top_8[3], top_8[4]),
+        (3, top_8[1], top_8[6]),
+        (4, top_8[2], top_8[5])
+    ]
+    for m_ord, t1, t2 in q_seeds:
+        c.execute("""
+            UPDATE matches 
+            SET team1_id = ?, team2_id = ?
+            WHERE tournament_id = ? AND stage = 'PLAYOFF' AND match_order = ?
+        """, (t1, t2, tournament_id, m_ord))
+    conn.commit()
+    conn.close()
+    return {"message": f"8 Tim ({', '.join(top_8)}) berhasil ditempatkan ke bagan Playoff Upper Bracket!"}
+
+@app.delete("/api/matches/{match_id}")
+def delete_match(match_id: int):
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute("DELETE FROM matches WHERE id=?", (match_id,))
+    conn.commit()
+    conn.close()
+    return {"message": "Pertandingan berhasil dihapus!"}
+
 class CreateMatchRequest(BaseModel):
     round_name: str
-    stage: str = "QUALIFIED" # QUALIFIED or PLAYOFF
-    bracket_type: str = "QUALIFIER" # QUALIFIER, UPPER, LOWER, FINAL
-    match_order: int = 1
+    stage: str = "QUALIFIED" # QUALIFIED, SWISS, or PLAYOFF
+    bracket_type: str = "QUALIFIER" # QUALIFIER, UPPER, LOWER, FINAL, or Pool name
+    match_order: Optional[int] = None
     team1_id: Optional[str] = None
     team2_id: Optional[str] = None
     score1: Optional[int] = None
     score2: Optional[int] = None
+    winner_id: Optional[str] = None
+    loser_id: Optional[str] = None
     status: str = "PENDING"
 
 @app.post("/api/tournaments/{tournament_id}/matches")
@@ -458,14 +550,39 @@ def add_tournament_match(tournament_id: str, req: CreateMatchRequest):
         conn.close()
         raise HTTPException(status_code=404, detail="Turnamen tidak ditemukan")
         
+    match_order = req.match_order
+    if match_order is None or match_order <= 0:
+        c.execute("SELECT COALESCE(MAX(match_order), 0) + 1 as next_ord FROM matches WHERE tournament_id=? AND stage=?", (tournament_id, req.stage))
+        match_order = c.fetchone()['next_ord']
+
+    winner_id = req.winner_id
+    loser_id = req.loser_id
+    if req.score1 is not None and req.score2 is not None and not winner_id:
+        if req.score1 > req.score2:
+            winner_id = req.team1_id
+            loser_id = req.team2_id
+        elif req.score2 > req.score1:
+            winner_id = req.team2_id
+            loser_id = req.team1_id
+    elif winner_id and not loser_id:
+        loser_id = req.team2_id if winner_id == req.team1_id else req.team1_id
+        
     c.execute("""
-        INSERT INTO matches (tournament_id, stage, round_name, bracket_type, match_order, team1_id, team2_id, score1, score2, status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (tournament_id, req.stage, req.round_name, req.bracket_type, req.match_order, req.team1_id, req.team2_id, req.score1, req.score2, req.status))
+        INSERT INTO matches (tournament_id, stage, round_name, bracket_type, match_order, team1_id, team2_id, score1, score2, winner_id, loser_id, status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (tournament_id, req.stage, req.round_name, req.bracket_type, match_order, req.team1_id, req.team2_id, req.score1, req.score2, winner_id, loser_id, req.status))
     new_id = c.lastrowid
+    
+    prog_msg = None
+    if req.stage == 'SWISS':
+        prog_msg = check_and_progress_swiss_stage(conn, tournament_id)
+        
     conn.commit()
     conn.close()
-    return {"message": "Pertandingan baru berhasil ditambahkan!", "match_id": new_id}
+    msg = "Pertandingan baru berhasil ditambahkan!"
+    if prog_msg and "berhasil dibuat" in prog_msg:
+        msg = f"{msg} {prog_msg}"
+    return {"message": msg, "match_id": new_id}
 
 @app.post("/api/tournaments/{tournament_id}/generate-mpl-qualifiers")
 def generate_mpl_qualifiers(tournament_id: str):
